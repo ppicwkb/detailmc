@@ -1,0 +1,2177 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring Stok WKB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .mobile-table {
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .desktop-table {
+                display: none;
+            }
+            .mobile-table {
+                display: block;
+            }
+            .mobile-card {
+                background: white;
+                border-radius: 12px;
+                padding: 16px;
+                margin-bottom: 12px;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                border-left: 4px solid #3b82f6;
+            }
+            .mobile-card.low-stock {
+                border-left-color: #f59e0b;
+            }
+            .mobile-card.out-of-stock {
+                border-left-color: #ef4444;
+            }
+        }
+        .floating-action {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 40;
+        }
+        @media (min-width: 768px) {
+            .floating-action {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <header class="glass-effect shadow-xl border-b border-white/20 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
+            <!-- Mobile Header -->
+            <div class="flex items-center justify-between lg:hidden">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-xl shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold gradient-text">WKB Stock</h1>
+                        <p class="text-xs text-gray-600">Real-time Monitoring</p>
+                    </div>
+                </div>
+                <button id="mobileMenuBtn" class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">
+                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Desktop Header -->
+            <div class="hidden lg:flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-3 rounded-xl shadow-lg">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold gradient-text">Monitoring Stok WKB</h1>
+                        <p class="text-gray-600">Sistem Monitoring Stok Real-time</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right hidden xl:block">
+                        <p class="text-sm text-gray-600">Data terakhir diubah:</p>
+                        <p id="lastModified" class="text-xs text-gray-500">Memuat...</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button id="analyticsBtn" class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-4 py-2 rounded-xl flex items-center space-x-2 transition-all shadow-lg hover:shadow-xl">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            <span>Analitik</span>
+                        </button>
+                        <button id="exportExcelBtn" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-xl flex items-center space-x-2 transition-all shadow-lg hover:shadow-xl">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <span>Excel</span>
+                        </button>
+                        <button id="exportPdfBtn" class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-2 rounded-xl flex items-center space-x-2 transition-all shadow-lg hover:shadow-xl">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
+                            <span>PDF</span>
+                        </button>
+                        <button id="refreshBtn" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-xl flex items-center space-x-2 transition-all shadow-lg hover:shadow-xl">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            <span>Refresh</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div id="mobileMenu" class="lg:hidden mt-4 hidden">
+                <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
+                    <div class="text-center mb-4">
+                        <p class="text-sm text-gray-600">Data terakhir diubah:</p>
+                        <p id="lastModifiedMobile" class="text-xs text-gray-500">Memuat...</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <button id="analyticsBtnMobile" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-3 py-2 rounded-lg flex flex-col items-center space-y-1 transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            <span class="text-xs">Analitik</span>
+                        </button>
+                        <button id="refreshBtnMobile" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-2 rounded-lg flex flex-col items-center space-y-1 transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            <span class="text-xs">Refresh</span>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="exportExcelBtnMobile" class="bg-gradient-to-r from-green-500 to-green-600 text-white px-3 py-2 rounded-lg flex flex-col items-center space-y-1 transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <span class="text-xs">Excel</span>
+                        </button>
+                        <button id="exportPdfBtnMobile" class="bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-2 rounded-lg flex flex-col items-center space-y-1 transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
+                            <span class="text-xs">PDF</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
+            <div class="glass-effect rounded-2xl shadow-xl p-4 lg:p-6 border-l-4 border-blue-500 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs lg:text-sm font-medium text-gray-600">Total Produk</p>
+                        <p id="totalProducts" class="text-xl lg:text-2xl font-bold text-gray-900">-</p>
+                    </div>
+                    <div class="bg-gradient-to-r from-blue-100 to-blue-200 p-2 lg:p-3 rounded-xl">
+                        <svg class="w-5 h-5 lg:w-6 lg:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-effect rounded-2xl shadow-xl p-4 lg:p-6 border-l-4 border-green-500 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs lg:text-sm font-medium text-gray-600">Stok Tersedia</p>
+                        <p id="availableStock" class="text-xl lg:text-2xl font-bold text-gray-900">-</p>
+                    </div>
+                    <div class="bg-gradient-to-r from-green-100 to-green-200 p-2 lg:p-3 rounded-xl">
+                        <svg class="w-5 h-5 lg:w-6 lg:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-effect rounded-2xl shadow-xl p-4 lg:p-6 border-l-4 border-yellow-500 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs lg:text-sm font-medium text-gray-600">Stok Rendah</p>
+                        <p id="lowStock" class="text-xl lg:text-2xl font-bold text-gray-900">-</p>
+                    </div>
+                    <div class="bg-gradient-to-r from-yellow-100 to-yellow-200 p-2 lg:p-3 rounded-xl">
+                        <svg class="w-5 h-5 lg:w-6 lg:h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-effect rounded-2xl shadow-xl p-4 lg:p-6 border-l-4 border-red-500 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs lg:text-sm font-medium text-gray-600">Stok Habis</p>
+                        <p id="outOfStock" class="text-xl lg:text-2xl font-bold text-gray-900">-</p>
+                    </div>
+                    <div class="bg-gradient-to-r from-red-100 to-red-200 p-2 lg:p-3 rounded-xl">
+                        <svg class="w-5 h-5 lg:w-6 lg:h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters and Search -->
+        <div class="glass-effect rounded-2xl shadow-xl mb-6 lg:mb-8">
+            <!-- Filter Header - Always Visible -->
+            <div class="p-4 lg:p-6 border-b border-gray-200/50">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-gradient-to-r from-purple-100 to-purple-200 p-2 rounded-xl">
+                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold gradient-text">🔍 Filter & Pencarian</h3>
+                            <p class="text-sm text-gray-600">Cari dan filter data stok</p>
+                        </div>
+                    </div>
+                    <button id="toggleFilters" class="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-xl transition-all shadow-md hover:shadow-lg">
+                        <span id="filterToggleText" class="text-sm font-medium">Tampilkan Filter</span>
+                        <svg id="filterToggleIcon" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Search - Always Visible -->
+            <div class="p-4 lg:p-6">
+                <div class="max-w-md">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">🔍 Pencarian Cepat</label>
+                    <input type="text" id="searchInput" placeholder="Cari berdasarkan Produk ID, Kode, atau Brand..." class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all">
+                </div>
+            </div>
+
+            <!-- Advanced Filters - Hidden by Default -->
+            <div id="advancedFilters" class="hidden border-t border-gray-200/50">
+                <div class="p-4 lg:p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">🏷️ Brand</label>
+                            <select id="brandFilter" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all">
+                                <option value="">Semua Brand</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">📦 Packing</label>
+                            <select id="packingFilter" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all">
+                                <option value="">Semua Packing</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">📊 Status Stok</label>
+                            <select id="stockFilter" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all">
+                                <option value="">Semua Status</option>
+                                <option value="available">✅ Tersedia</option>
+                                <option value="low">⚠️ Stok Rendah</option>
+                                <option value="out">❌ Habis</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Filter Actions -->
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <button id="clearFilters" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm transition-all shadow-md hover:shadow-lg">
+                            🗑️ Reset Filter
+                        </button>
+                        <button id="applyFilters" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-lg text-sm transition-all shadow-md hover:shadow-lg">
+                            ✅ Terapkan Filter
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="bg-white rounded-xl shadow-lg p-12 text-center">
+            <div class="loading-spinner mx-auto mb-4"></div>
+            <p class="text-gray-600">Memuat data stok...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="bg-white rounded-xl shadow-lg p-12 text-center hidden">
+            <div class="bg-red-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Gagal Memuat Data</h3>
+            <p class="text-gray-600 mb-4">Terjadi kesalahan saat mengambil data dari Google Sheets.</p>
+            <button onclick="loadData()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
+                Coba Lagi
+            </button>
+        </div>
+
+        <!-- Analytics Page -->
+        <div id="analyticsPage" class="hidden">
+            <!-- Page Header -->
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center space-x-3">
+                    <button id="backToTable" class="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded-xl transition-all shadow-md hover:shadow-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                    </button>
+                    <div>
+                        <h2 class="text-2xl font-bold gradient-text">📊 Analitik Stok</h2>
+                        <p class="text-gray-600">Dashboard analisis mendalam untuk stok WKB</p>
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    <button id="refreshAnalytics" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-xl flex items-center space-x-2 transition-all shadow-lg hover:shadow-xl">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span class="hidden lg:inline">Refresh</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Analytics Cards Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+                <!-- Stock Distribution Chart -->
+                <div class="lg:col-span-2 xl:col-span-2 glass-effect rounded-2xl shadow-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold gradient-text">📊 Distribusi Stok</h3>
+                        <div class="flex space-x-2">
+                            <div class="flex items-center space-x-1">
+                                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                <span class="text-xs text-gray-600">Tersedia</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                <span class="text-xs text-gray-600">Rendah</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                                <span class="text-xs text-gray-600">Habis</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="stockDistributionChart" class="h-64 flex items-center justify-center">
+                        <!-- Chart will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Top Brands -->
+                <div class="glass-effect rounded-2xl shadow-xl p-6">
+                    <h3 class="text-lg font-semibold gradient-text mb-4">🏆 Top Brand</h3>
+                    <div id="topBrands" class="space-y-3">
+                        <!-- Top brands will be rendered here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Second Row Analytics -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Brand Analysis -->
+                <div class="glass-effect rounded-2xl shadow-xl p-6">
+                    <h3 class="text-lg font-semibold gradient-text mb-4">🏷️ Analisis Brand</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="text-left py-2 text-sm font-medium text-gray-600">Brand</th>
+                                    <th class="text-center py-2 text-sm font-medium text-gray-600">Total</th>
+                                    <th class="text-center py-2 text-sm font-medium text-gray-600">Tersedia</th>
+                                    <th class="text-center py-2 text-sm font-medium text-gray-600">Rendah</th>
+                                    <th class="text-center py-2 text-sm font-medium text-gray-600">Habis</th>
+                                </tr>
+                            </thead>
+                            <tbody id="brandAnalysisTable" class="divide-y divide-gray-100">
+                                <!-- Brand analysis will be rendered here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Packing Analysis -->
+                <div class="glass-effect rounded-2xl shadow-xl p-6">
+                    <h3 class="text-lg font-semibold gradient-text mb-4">📦 Analisis Packing</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="text-left py-2 text-sm font-medium text-gray-600">Packing</th>
+                                    <th class="text-center py-2 text-sm font-medium text-gray-600">Total</th>
+                                    <th class="text-center py-2 text-sm font-medium text-gray-600">Tersedia</th>
+                                    <th class="text-center py-2 text-sm font-medium text-gray-600">Rendah</th>
+                                    <th class="text-center py-2 text-sm font-medium text-gray-600">Habis</th>
+                                </tr>
+                            </thead>
+                            <tbody id="packingAnalysisTable" class="divide-y divide-gray-100">
+                                <!-- Packing analysis will be rendered here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Third Row Analytics -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Stock Alerts -->
+                <div class="glass-effect rounded-2xl shadow-xl p-6">
+                    <h3 class="text-lg font-semibold gradient-text mb-4">⚠️ Peringatan Stok</h3>
+                    <div id="stockAlerts" class="space-y-3 max-h-64 overflow-y-auto">
+                        <!-- Stock alerts will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Stock Value Analysis -->
+                <div class="glass-effect rounded-2xl shadow-xl p-6">
+                    <h3 class="text-lg font-semibold gradient-text mb-4">💰 Nilai Stok</h3>
+                    <div id="stockValue" class="space-y-4">
+                        <!-- Stock value analysis will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="glass-effect rounded-2xl shadow-xl p-6">
+                    <h3 class="text-lg font-semibold gradient-text mb-4">📈 Tren Stok</h3>
+                    <div id="stockTrends" class="space-y-3">
+                        <!-- Stock trends will be rendered here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Analytics Table -->
+            <div class="glass-effect rounded-2xl shadow-xl">
+                <div class="px-6 py-4 border-b border-gray-200/50 bg-gradient-to-r from-purple-50 to-blue-50">
+                    <h3 class="text-lg font-semibold gradient-text">📋 Analisis Detail per Produk</h3>
+                </div>
+                <div class="p-6">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produk</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
+                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</th>
+                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori Risiko</th>
+                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Rekomendasi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detailedAnalysisTable" class="bg-white/80 backdrop-blur-sm divide-y divide-gray-200">
+                                <!-- Detailed analysis will be rendered here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div id="dataTable" class="hidden">
+            <!-- Desktop Table -->
+            <div class="desktop-table glass-effect rounded-2xl shadow-xl overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200/50 bg-gradient-to-r from-blue-50 to-purple-50">
+                    <h3 class="text-lg font-semibold gradient-text">📋 Data Stok Produk</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead id="tableHead" class="bg-gradient-to-r from-gray-50 to-gray-100">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loading...</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="bg-white/80 backdrop-blur-sm divide-y divide-gray-200">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Mobile Cards -->
+            <div class="mobile-table">
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold gradient-text">📋 Data Stok Produk</h3>
+                </div>
+                <div id="mobileCards" class="space-y-3">
+                    <!-- Mobile cards will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Action Button for Mobile -->
+        <div class="floating-action">
+            <button id="floatingMenuBtn" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 rounded-full shadow-2xl hover:shadow-3xl transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                </svg>
+            </button>
+            <div id="floatingMenu" class="absolute bottom-16 right-0 bg-white rounded-2xl shadow-2xl p-4 hidden min-w-48">
+                <div class="space-y-2">
+                    <button id="floatingAnalyticsBtn" class="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-xl flex items-center space-x-2 transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <span class="text-sm">Analitik</span>
+                    </button>
+                    <button id="floatingExcelBtn" class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-xl flex items-center space-x-2 transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span class="text-sm">Export Excel</span>
+                    </button>
+                    <button id="floatingPdfBtn" class="w-full bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-xl flex items-center space-x-2 transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                        </svg>
+                        <span class="text-sm">Export PDF</span>
+                    </button>
+                    <button id="floatingRefreshBtn" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-xl flex items-center space-x-2 transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span class="text-sm">Refresh Data</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail Modal -->
+        <div id="detailModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+                <div class="mt-3">
+                    <!-- Modal Header -->
+                    <div class="flex items-center justify-between pb-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Detail Produk</h3>
+                        <button id="closeModal" class="text-gray-400 hover:text-gray-600 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Modal Content -->
+                    <div class="mt-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Left Column -->
+                            <div class="space-y-4">
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold text-gray-700 mb-3">Informasi Produk</h4>
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Produk ID:</span>
+                                            <span id="modal-produk-id" class="font-medium text-gray-900">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Size:</span>
+                                            <span id="modal-size" class="font-medium text-gray-900">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Brand:</span>
+                                            <span id="modal-brand" class="font-medium text-gray-900">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Packing:</span>
+                                            <span id="modal-packing" class="font-medium text-gray-900">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold text-gray-700 mb-3">Kode Produk</h4>
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Kode:</span>
+                                            <span id="modal-kode" class="font-medium text-gray-900">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Kode Asal:</span>
+                                            <span id="modal-kode-asal" class="font-medium text-gray-900">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Column -->
+                            <div class="space-y-4">
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold text-gray-700 mb-3">Informasi Stok</h4>
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Saldo:</span>
+                                            <span id="modal-saldo" class="font-bold text-2xl">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Berat (KG):</span>
+                                            <span id="modal-kg" class="font-medium text-gray-900">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Status:</span>
+                                            <span id="modal-status" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold text-gray-700 mb-3">Informasi Pesanan</h4>
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">PO:</span>
+                                            <span id="modal-po" class="font-medium text-gray-900">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">JD:</span>
+                                            <span id="modal-jd" class="font-medium text-gray-900">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Stock Alert -->
+                        <div id="stockAlert" class="mt-6 p-4 rounded-lg hidden">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                <span id="alertMessage" class="font-medium"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Modal Footer -->
+                    <div class="flex justify-end pt-6 border-t border-gray-200 mt-6">
+                        <button id="closeModalBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_KEY = "AIzaSyBhiKDVDH4fle5_EqAIaA05YjpxVMEBYZM";
+        const SHEET_ID = "1dgXDpt3MTdpHZyhhY7VdKC3tT_EQJaqoBBb0VFXwJco";
+        const SHEET_NAME = "DETAIL";
+        
+        let allData = [];
+        let filteredData = [];
+
+        // Get last modified time from Google Drive API
+        async function getLastModifiedTime() {
+            try {
+                const driveUrl = `https://www.googleapis.com/drive/v3/files/${SHEET_ID}?fields=modifiedTime&key=${API_KEY}`;
+                const response = await fetch(driveUrl);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const modifiedTime = new Date(data.modifiedTime);
+                    const formattedTime = modifiedTime.toLocaleString('id-ID', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                    // Update both desktop and mobile elements
+                    const desktopElement = document.getElementById('lastModified');
+                    const mobileElement = document.getElementById('lastModifiedMobile');
+                    if (desktopElement) desktopElement.textContent = formattedTime;
+                    if (mobileElement) mobileElement.textContent = formattedTime;
+                } else {
+                    const desktopElement = document.getElementById('lastModified');
+                    const mobileElement = document.getElementById('lastModifiedMobile');
+                    if (desktopElement) desktopElement.textContent = 'Tidak tersedia';
+                    if (mobileElement) mobileElement.textContent = 'Tidak tersedia';
+                }
+            } catch (error) {
+                console.error('Error getting last modified time:', error);
+                const desktopElement = document.getElementById('lastModified');
+                const mobileElement = document.getElementById('lastModifiedMobile');
+                if (desktopElement) desktopElement.textContent = 'Tidak tersedia';
+                if (mobileElement) mobileElement.textContent = 'Tidak tersedia';
+            }
+        }
+
+        // Load data from Google Sheets with optimization
+        async function loadData() {
+            try {
+                showLoading();
+                console.log('Starting data fetch...');
+                
+                // Get last modified time
+                getLastModifiedTime();
+                
+                // Try multiple approaches to fetch data
+                let url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
+                
+                console.log('Fetching from URL:', url);
+                
+                const response = await fetch(url);
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    console.error('Response not OK:', response.status, response.statusText);
+                    
+                    // Try alternative range format
+                    url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/'${SHEET_NAME}'!A:Z?key=${API_KEY}`;
+                    console.log('Trying alternative URL:', url);
+                    
+                    const altResponse = await fetch(url);
+                    if (!altResponse.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const altData = await altResponse.json();
+                    console.log('Alternative fetch successful:', altData);
+                    processSheetData(altData);
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('Data received:', data);
+                processSheetData(data);
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                
+                // Try with sample data as fallback
+                console.log('Using sample data as fallback...');
+                createSampleData();
+            }
+        }
+
+        function processSheetData(data) {
+            const rows = data.values;
+            
+            if (!rows || rows.length === 0) {
+                console.log('No data found, using sample data');
+                createSampleData();
+                return;
+            }
+            
+            console.log('Processing', rows.length, 'rows');
+            
+            // Get actual headers from the sheet
+            const headers = rows[0];
+            console.log('Sheet headers:', headers);
+            
+            // Map data using actual column headers from sheet
+            allData = rows.slice(1).filter(row => row && row.length > 0).map(row => {
+                const item = {};
+                headers.forEach((header, index) => {
+                    item[header] = row[index] || '';
+                });
+                
+                // Find SALDO column dynamically and pre-parse for faster filtering
+                const saldoKey = headers.find(h => h && h.toString().toLowerCase().includes('saldo')) || 
+                               headers.find(h => h && h.toString().toLowerCase().includes('stock')) ||
+                               headers[headers.length - 2]; // Often second to last column
+                
+                const saldoValue = item[saldoKey] || '0';
+                item.SALDO_NUM = parseInt(saldoValue.toString().replace(/[^\d]/g, '')) || 0;
+                item._SALDO_KEY = saldoKey; // Store the actual saldo column name
+                
+                return item;
+            });
+            
+            console.log('Processed data:', allData.length, 'items');
+            
+            if (allData.length === 0) {
+                createSampleData();
+                return;
+            }
+            
+            filteredData = [...allData];
+            
+            // Use requestAnimationFrame for smooth UI updates
+            requestAnimationFrame(() => {
+                updateStats();
+                updateFilters();
+                updateTableHeaders();
+                renderTable();
+                showTable();
+            });
+        }
+
+        function createSampleData() {
+            console.log('Creating sample data...');
+            
+            // Create sample data that matches expected structure
+            const sampleHeaders = ['PRODUK ID', 'SIZE', 'PO', 'JD', 'KODE', 'KODE ASAL', 'PACKING', 'BRAND', 'SALDO', 'KG'];
+            
+            allData = [
+                {
+                    'PRODUK ID': 'WKB001',
+                    'SIZE': 'L',
+                    'PO': 'PO001',
+                    'JD': 'JD001',
+                    'KODE': 'K001',
+                    'KODE ASAL': 'KA001',
+                    'PACKING': 'Box',
+                    'BRAND': 'Brand A',
+                    'SALDO': '25',
+                    'KG': '2.5',
+                    'SALDO_NUM': 25,
+                    '_SALDO_KEY': 'SALDO'
+                },
+                {
+                    'PRODUK ID': 'WKB002',
+                    'SIZE': 'M',
+                    'PO': 'PO002',
+                    'JD': 'JD002',
+                    'KODE': 'K002',
+                    'KODE ASAL': 'KA002',
+                    'PACKING': 'Bag',
+                    'BRAND': 'Brand B',
+                    'SALDO': '5',
+                    'KG': '1.2',
+                    'SALDO_NUM': 5,
+                    '_SALDO_KEY': 'SALDO'
+                },
+                {
+                    'PRODUK ID': 'WKB003',
+                    'SIZE': 'S',
+                    'PO': 'PO003',
+                    'JD': 'JD003',
+                    'KODE': 'K003',
+                    'KODE ASAL': 'KA003',
+                    'PACKING': 'Box',
+                    'BRAND': 'Brand A',
+                    'SALDO': '0',
+                    'KG': '0.8',
+                    'SALDO_NUM': 0,
+                    '_SALDO_KEY': 'SALDO'
+                },
+                {
+                    'PRODUK ID': 'WKB004',
+                    'SIZE': 'XL',
+                    'PO': 'PO004',
+                    'JD': 'JD004',
+                    'KODE': 'K004',
+                    'KODE ASAL': 'KA004',
+                    'PACKING': 'Carton',
+                    'BRAND': 'Brand C',
+                    'SALDO': '15',
+                    'KG': '3.2',
+                    'SALDO_NUM': 15,
+                    '_SALDO_KEY': 'SALDO'
+                },
+                {
+                    'PRODUK ID': 'WKB005',
+                    'SIZE': 'M',
+                    'PO': 'PO005',
+                    'JD': 'JD005',
+                    'KODE': 'K005',
+                    'KODE ASAL': 'KA005',
+                    'PACKING': 'Bag',
+                    'BRAND': 'Brand B',
+                    'SALDO': '8',
+                    'KG': '1.5',
+                    'SALDO_NUM': 8,
+                    '_SALDO_KEY': 'SALDO'
+                }
+            ];
+            
+            filteredData = [...allData];
+            
+            // Show sample data notification
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded z-50';
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <span>Menggunakan data contoh - Periksa koneksi Google Sheets</span>
+                </div>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 5000);
+            
+            requestAnimationFrame(() => {
+                updateStats();
+                updateFilters();
+                updateTableHeaders();
+                renderTable();
+                showTable();
+            });
+        }
+
+        function showLoading() {
+            document.getElementById('loadingState').classList.remove('hidden');
+            document.getElementById('errorState').classList.add('hidden');
+            document.getElementById('dataTable').classList.add('hidden');
+        }
+
+        function showError() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('errorState').classList.remove('hidden');
+            document.getElementById('dataTable').classList.add('hidden');
+        }
+
+        function showTable() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('errorState').classList.add('hidden');
+            document.getElementById('dataTable').classList.remove('hidden');
+        }
+
+        function updateStats() {
+            const totalProducts = allData.length;
+            let availableStock = 0;
+            let lowStock = 0;
+            let outOfStock = 0;
+
+            // Use pre-parsed SALDO_NUM for faster calculation
+            allData.forEach(item => {
+                const saldo = item.SALDO_NUM;
+                if (saldo > 10) {
+                    availableStock++;
+                } else if (saldo > 0) {
+                    lowStock++;
+                } else {
+                    outOfStock++;
+                }
+            });
+
+            document.getElementById('totalProducts').textContent = totalProducts.toLocaleString();
+            document.getElementById('availableStock').textContent = availableStock.toLocaleString();
+            document.getElementById('lowStock').textContent = lowStock.toLocaleString();
+            document.getElementById('outOfStock').textContent = outOfStock.toLocaleString();
+        }
+
+        function updateFilters() {
+            if (allData.length === 0) return;
+            
+            // Get actual column names from first data item
+            const sampleItem = allData[0];
+            const columns = Object.keys(sampleItem);
+            
+            // Find brand column dynamically
+            const brandKey = columns.find(col => col.toLowerCase().includes('brand')) || 'BRAND';
+            const brands = [...new Set(allData.map(item => item[brandKey]).filter(brand => brand))];
+            const brandSelect = document.getElementById('brandFilter');
+            brandSelect.innerHTML = '<option value="">Semua Brand</option>';
+            brands.forEach(brand => {
+                const option = document.createElement('option');
+                option.value = brand;
+                option.textContent = brand;
+                brandSelect.appendChild(option);
+            });
+
+            // Find packing column dynamically
+            const packingKey = columns.find(col => col.toLowerCase().includes('packing')) || 'PACKING';
+            const packings = [...new Set(allData.map(item => item[packingKey]).filter(packing => packing))];
+            const packingSelect = document.getElementById('packingFilter');
+            packingSelect.innerHTML = '<option value="">Semua Packing</option>';
+            packings.forEach(packing => {
+                const option = document.createElement('option');
+                option.value = packing;
+                option.textContent = packing;
+                packingSelect.appendChild(option);
+            });
+            
+            // Store column keys for later use
+            window.columnKeys = {
+                brand: brandKey,
+                packing: packingKey,
+                saldo: sampleItem._SALDO_KEY
+            };
+        }
+
+        function getStockStatus(saldo) {
+            const stock = parseInt(saldo) || 0;
+            if (stock > 10) {
+                return { status: 'Tersedia', class: 'bg-green-100 text-green-800' };
+            } else if (stock > 0) {
+                return { status: 'Stok Rendah', class: 'bg-yellow-100 text-yellow-800' };
+            } else {
+                return { status: 'Habis', class: 'bg-red-100 text-red-800' };
+            }
+        }
+
+        let currentPage = 1;
+        const itemsPerPage = 50; // Show 50 items per page for better performance
+
+        function updateTableHeaders() {
+            if (allData.length === 0) return;
+            
+            const thead = document.getElementById('tableHead');
+            const sampleItem = allData[0];
+            const columns = Object.keys(sampleItem).filter(key => !key.startsWith('_'));
+            
+            // Define display order - try to match common column names
+            const displayOrder = [];
+            const commonNames = ['produk', 'size', 'po', 'jd', 'kode', 'packing', 'brand', 'saldo', 'kg'];
+            
+            commonNames.forEach(name => {
+                const matchingCol = columns.find(col => col.toLowerCase().includes(name));
+                if (matchingCol) displayOrder.push(matchingCol);
+            });
+            
+            // Add any remaining columns
+            columns.forEach(col => {
+                if (!displayOrder.includes(col)) displayOrder.push(col);
+            });
+            
+            // Create header row
+            let headerHtml = '<tr>';
+            displayOrder.slice(0, 10).forEach(colName => {
+                headerHtml += `<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${colName}</th>`;
+            });
+            headerHtml += '<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>';
+            headerHtml += '</tr>';
+            
+            thead.innerHTML = headerHtml;
+            
+            // Store display order for table rendering
+            window.tableDisplayOrder = displayOrder;
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            const mobileCards = document.getElementById('mobileCards');
+            
+            if (tbody) tbody.innerHTML = '';
+            if (mobileCards) mobileCards.innerHTML = '';
+
+            if (filteredData.length === 0) return;
+
+            // Calculate pagination
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageData = filteredData.slice(startIndex, endIndex);
+
+            // Render desktop table
+            if (tbody) {
+                const fragment = document.createDocumentFragment();
+                const displayOrder = window.tableDisplayOrder || Object.keys(filteredData[0]).filter(key => !key.startsWith('_'));
+
+                pageData.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-white/60 transition-colors';
+                    
+                    const saldoColor = item.SALDO_NUM > 10 ? 'text-green-600' : 
+                                     item.SALDO_NUM > 0 ? 'text-yellow-600' : 'text-red-600';
+                    
+                    let cellsHtml = '';
+                    displayOrder.slice(0, 10).forEach(colName => {
+                        const value = item[colName] || '-';
+                        const isSaldo = colName === item._SALDO_KEY;
+                        const cellClass = isSaldo ? `px-4 py-3 whitespace-nowrap text-sm font-bold ${saldoColor}` : 
+                                         'px-4 py-3 whitespace-nowrap text-sm text-gray-900';
+                        const displayValue = isSaldo ? item.SALDO_NUM.toLocaleString() : value;
+                        
+                        cellsHtml += `<td class="${cellClass}">${displayValue}</td>`;
+                    });
+                    
+                    cellsHtml += `
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                            <button onclick="showDetailModal(${JSON.stringify(item).replace(/"/g, '&quot;')})" 
+                                class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-3 py-1 rounded-lg text-xs transition-all shadow-md hover:shadow-lg">
+                                Detail
+                            </button>
+                        </td>
+                    `;
+                    
+                    row.innerHTML = cellsHtml;
+                    fragment.appendChild(row);
+                });
+
+                tbody.appendChild(fragment);
+            }
+
+            // Render mobile cards
+            if (mobileCards) {
+                const mobileFragment = document.createDocumentFragment();
+                const keys = window.columnKeys || {};
+                
+                pageData.forEach(item => {
+                    const card = document.createElement('div');
+                    const stockClass = item.SALDO_NUM === 0 ? 'out-of-stock' : 
+                                     item.SALDO_NUM <= 10 ? 'low-stock' : '';
+                    
+                    card.className = `mobile-card ${stockClass}`;
+                    
+                    const produkIdKey = Object.keys(item).find(col => col.toLowerCase().includes('produk')) || 'PRODUK ID';
+                    const brandKey = keys.brand || 'BRAND';
+                    const sizeKey = Object.keys(item).find(col => col.toLowerCase().includes('size')) || 'SIZE';
+                    const packingKey = keys.packing || 'PACKING';
+                    
+                    const stockStatus = item.SALDO_NUM > 10 ? '✅ Tersedia' : 
+                                      item.SALDO_NUM > 0 ? '⚠️ Stok Rendah' : '❌ Habis';
+                    const stockColor = item.SALDO_NUM > 10 ? 'text-green-600' : 
+                                     item.SALDO_NUM > 0 ? 'text-yellow-600' : 'text-red-600';
+                    
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-bold text-gray-900 text-lg">${item[produkIdKey] || '-'}</h4>
+                                <p class="text-sm text-gray-600">${item[brandKey] || '-'} • ${item[sizeKey] || '-'}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-2xl font-bold ${stockColor}">${item.SALDO_NUM.toLocaleString()}</p>
+                                <p class="text-xs ${stockColor}">${stockStatus}</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <p class="text-xs text-gray-500">Packing</p>
+                                <p class="text-sm font-medium text-gray-900">${item[packingKey] || '-'}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">Kode</p>
+                                <p class="text-sm font-medium text-gray-900">${item.KODE || '-'}</p>
+                            </div>
+                        </div>
+                        <button onclick="showDetailModal(${JSON.stringify(item).replace(/"/g, '&quot;')})" 
+                            class="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-2 px-4 rounded-xl text-sm font-medium transition-all shadow-md hover:shadow-lg">
+                            Lihat Detail
+                        </button>
+                    `;
+                    
+                    mobileFragment.appendChild(card);
+                });
+
+                mobileCards.appendChild(mobileFragment);
+            }
+
+            updatePagination();
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            let paginationHtml = '';
+
+            if (totalPages > 1) {
+                paginationHtml = `
+                    <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                        <div class="text-sm text-gray-700">
+                            Menampilkan ${((currentPage - 1) * itemsPerPage) + 1} - ${Math.min(currentPage * itemsPerPage, filteredData.length)} dari ${filteredData.length} data
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} 
+                                class="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}">
+                                Sebelumnya
+                            </button>
+                            <span class="px-3 py-1 text-sm bg-blue-500 text-white rounded">
+                                ${currentPage} / ${totalPages}
+                            </span>
+                            <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} 
+                                class="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}">
+                                Selanjutnya
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Add pagination to table
+            const existingPagination = document.querySelector('.pagination-container');
+            if (existingPagination) {
+                existingPagination.remove();
+            }
+
+            if (paginationHtml) {
+                const paginationDiv = document.createElement('div');
+                paginationDiv.className = 'pagination-container';
+                paginationDiv.innerHTML = paginationHtml;
+                document.getElementById('dataTable').appendChild(paginationDiv);
+            }
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                renderTable();
+            }
+        }
+
+        // Debounce search for better performance
+        let searchTimeout;
+        
+        function applyFilters() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                const brandFilter = document.getElementById('brandFilter').value;
+                const packingFilter = document.getElementById('packingFilter').value;
+                const stockFilter = document.getElementById('stockFilter').value;
+
+                filteredData = allData.filter(item => {
+                    // Get dynamic column keys
+                    const keys = window.columnKeys || {};
+                    const brandKey = keys.brand || 'BRAND';
+                    const packingKey = keys.packing || 'PACKING';
+                    
+                    // Pre-compute search strings for better performance
+                    if (searchTerm && !item._searchString) {
+                        const searchableColumns = Object.keys(item).filter(key => 
+                            !key.startsWith('_') && 
+                            (key.toLowerCase().includes('produk') || 
+                             key.toLowerCase().includes('kode') || 
+                             key.toLowerCase().includes('brand'))
+                        );
+                        
+                        item._searchString = searchableColumns.map(col => item[col] || '').join(' ').toLowerCase();
+                    }
+                    
+                    const matchesSearch = !searchTerm || item._searchString.includes(searchTerm);
+                    const matchesBrand = !brandFilter || item[brandKey] === brandFilter;
+                    const matchesPacking = !packingFilter || item[packingKey] === packingFilter;
+                    
+                    let matchesStock = true;
+                    if (stockFilter) {
+                        const saldo = item.SALDO_NUM; // Use pre-parsed value
+                        if (stockFilter === 'available') matchesStock = saldo > 10;
+                        else if (stockFilter === 'low') matchesStock = saldo > 0 && saldo <= 10;
+                        else if (stockFilter === 'out') matchesStock = saldo === 0;
+                    }
+
+                    return matchesSearch && matchesBrand && matchesPacking && matchesStock;
+                });
+
+                currentPage = 1; // Reset to first page when filtering
+                renderTable();
+            }, 300); // 300ms debounce
+        }
+
+        // Export to Excel function
+        function exportToExcel() {
+            try {
+                // Create pivot-like summary data
+                const summaryData = createPivotSummary();
+                
+                // Create workbook
+                const wb = XLSX.utils.book_new();
+                
+                // Add summary sheet
+                const summaryWs = XLSX.utils.json_to_sheet(summaryData.summary);
+                XLSX.utils.book_append_sheet(wb, summaryWs, "Ringkasan Stok");
+                
+                // Add brand analysis sheet
+                const brandWs = XLSX.utils.json_to_sheet(summaryData.brandAnalysis);
+                XLSX.utils.book_append_sheet(wb, brandWs, "Analisis Brand");
+                
+                // Add packing analysis sheet
+                const packingWs = XLSX.utils.json_to_sheet(summaryData.packingAnalysis);
+                XLSX.utils.book_append_sheet(wb, packingWs, "Analisis Packing");
+                
+                // Add detailed data sheet
+                const detailData = filteredData.map(item => {
+                    const cleanItem = {};
+                    Object.keys(item).forEach(key => {
+                        if (!key.startsWith('_')) {
+                            cleanItem[key] = item[key];
+                        }
+                    });
+                    return cleanItem;
+                });
+                const detailWs = XLSX.utils.json_to_sheet(detailData);
+                XLSX.utils.book_append_sheet(wb, detailWs, "Data Detail");
+                
+                // Generate filename with timestamp
+                const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                const filename = `Monitoring_Stok_WKB_${timestamp}.xlsx`;
+                
+                // Save file
+                XLSX.writeFile(wb, filename);
+                
+                showNotification('File Excel berhasil diunduh!', 'success');
+            } catch (error) {
+                console.error('Error exporting to Excel:', error);
+                showNotification('Gagal mengekspor ke Excel', 'error');
+            }
+        }
+
+        // Export to PDF function
+        function exportToPDF() {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('l', 'mm', 'a4'); // Landscape orientation
+                
+                // Create pivot-like summary data
+                const summaryData = createPivotSummary();
+                
+                // Add title
+                doc.setFontSize(16);
+                doc.text('Laporan Monitoring Stok WKB', 20, 20);
+                
+                // Add timestamp
+                doc.setFontSize(10);
+                const timestamp = new Date().toLocaleString('id-ID');
+                doc.text(`Dibuat pada: ${timestamp}`, 20, 30);
+                
+                let yPosition = 45;
+                
+                // Add summary statistics
+                doc.setFontSize(12);
+                doc.text('Ringkasan Stok:', 20, yPosition);
+                yPosition += 10;
+                
+                const summaryStats = [
+                    ['Kategori', 'Jumlah Produk', 'Total Stok'],
+                    ['Stok Tersedia (>10)', summaryData.stats.available.toString(), summaryData.stats.availableStock.toString()],
+                    ['Stok Rendah (1-10)', summaryData.stats.low.toString(), summaryData.stats.lowStock.toString()],
+                    ['Stok Habis (0)', summaryData.stats.out.toString(), '0'],
+                    ['Total', summaryData.stats.total.toString(), summaryData.stats.totalStock.toString()]
+                ];
+                
+                doc.autoTable({
+                    head: [summaryStats[0]],
+                    body: summaryStats.slice(1),
+                    startY: yPosition,
+                    theme: 'grid',
+                    headStyles: { fillColor: [59, 130, 246] },
+                    margin: { left: 20 }
+                });
+                
+                yPosition = doc.lastAutoTable.finalY + 15;
+                
+                // Add brand analysis
+                if (yPosition > 200) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+                
+                doc.setFontSize(12);
+                doc.text('Analisis per Brand:', 20, yPosition);
+                yPosition += 10;
+                
+                const brandHeaders = ['Brand', 'Total Produk', 'Stok Tersedia', 'Stok Rendah', 'Stok Habis'];
+                const brandRows = summaryData.brandAnalysis.map(item => [
+                    item.Brand,
+                    item['Total Produk'].toString(),
+                    item['Stok Tersedia'].toString(),
+                    item['Stok Rendah'].toString(),
+                    item['Stok Habis'].toString()
+                ]);
+                
+                doc.autoTable({
+                    head: [brandHeaders],
+                    body: brandRows,
+                    startY: yPosition,
+                    theme: 'grid',
+                    headStyles: { fillColor: [34, 197, 94] },
+                    margin: { left: 20 }
+                });
+                
+                // Add new page for detailed data if needed
+                doc.addPage();
+                yPosition = 20;
+                
+                doc.setFontSize(12);
+                doc.text('Data Detail (10 Produk Pertama):', 20, yPosition);
+                yPosition += 10;
+                
+                // Get first 10 items for detailed view
+                const detailItems = filteredData.slice(0, 10);
+                const displayOrder = window.tableDisplayOrder || Object.keys(detailItems[0] || {}).filter(key => !key.startsWith('_'));
+                
+                const detailHeaders = displayOrder.slice(0, 8); // Limit columns for PDF width
+                const detailRows = detailItems.map(item => 
+                    detailHeaders.map(col => (item[col] || '-').toString())
+                );
+                
+                doc.autoTable({
+                    head: [detailHeaders],
+                    body: detailRows,
+                    startY: yPosition,
+                    theme: 'grid',
+                    headStyles: { fillColor: [239, 68, 68] },
+                    margin: { left: 20 },
+                    styles: { fontSize: 8 }
+                });
+                
+                // Generate filename with timestamp
+                const timestamp2 = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                const filename = `Monitoring_Stok_WKB_${timestamp2}.pdf`;
+                
+                // Save file
+                doc.save(filename);
+                
+                showNotification('File PDF berhasil diunduh!', 'success');
+            } catch (error) {
+                console.error('Error exporting to PDF:', error);
+                showNotification('Gagal mengekspor ke PDF', 'error');
+            }
+        }
+
+        // Create pivot-like summary data
+        function createPivotSummary() {
+            const stats = {
+                total: allData.length,
+                available: 0,
+                low: 0,
+                out: 0,
+                totalStock: 0,
+                availableStock: 0,
+                lowStock: 0
+            };
+            
+            const brandStats = {};
+            const packingStats = {};
+            
+            allData.forEach(item => {
+                const saldo = item.SALDO_NUM;
+                stats.totalStock += saldo;
+                
+                if (saldo > 10) {
+                    stats.available++;
+                    stats.availableStock += saldo;
+                } else if (saldo > 0) {
+                    stats.low++;
+                    stats.lowStock += saldo;
+                } else {
+                    stats.out++;
+                }
+                
+                // Brand analysis
+                const keys = window.columnKeys || {};
+                const brandKey = keys.brand || 'BRAND';
+                const packingKey = keys.packing || 'PACKING';
+                
+                const brand = item[brandKey] || 'Unknown';
+                const packing = item[packingKey] || 'Unknown';
+                
+                if (!brandStats[brand]) {
+                    brandStats[brand] = { total: 0, available: 0, low: 0, out: 0 };
+                }
+                brandStats[brand].total++;
+                if (saldo > 10) brandStats[brand].available++;
+                else if (saldo > 0) brandStats[brand].low++;
+                else brandStats[brand].out++;
+                
+                if (!packingStats[packing]) {
+                    packingStats[packing] = { total: 0, available: 0, low: 0, out: 0 };
+                }
+                packingStats[packing].total++;
+                if (saldo > 10) packingStats[packing].available++;
+                else if (saldo > 0) packingStats[packing].low++;
+                else packingStats[packing].out++;
+            });
+            
+            // Convert to array format for export
+            const summary = [
+                { Kategori: 'Total Produk', Nilai: stats.total },
+                { Kategori: 'Stok Tersedia', Nilai: stats.available },
+                { Kategori: 'Stok Rendah', Nilai: stats.low },
+                { Kategori: 'Stok Habis', Nilai: stats.out },
+                { Kategori: 'Total Stok', Nilai: stats.totalStock }
+            ];
+            
+            const brandAnalysis = Object.keys(brandStats).map(brand => ({
+                Brand: brand,
+                'Total Produk': brandStats[brand].total,
+                'Stok Tersedia': brandStats[brand].available,
+                'Stok Rendah': brandStats[brand].low,
+                'Stok Habis': brandStats[brand].out
+            }));
+            
+            const packingAnalysis = Object.keys(packingStats).map(packing => ({
+                Packing: packing,
+                'Total Produk': packingStats[packing].total,
+                'Stok Tersedia': packingStats[packing].available,
+                'Stok Rendah': packingStats[packing].low,
+                'Stok Habis': packingStats[packing].out
+            }));
+            
+            return { summary, brandAnalysis, packingAnalysis, stats };
+        }
+
+        // Show notification function
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-green-100 border-green-400 text-green-700' : 
+                           type === 'error' ? 'bg-red-100 border-red-400 text-red-700' : 
+                           'bg-blue-100 border-blue-400 text-blue-700';
+            
+            notification.className = `fixed top-4 right-4 ${bgColor} border px-4 py-3 rounded z-50`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 3000);
+        }
+
+        // Toggle filters functionality
+        function toggleFilters() {
+            const advancedFilters = document.getElementById('advancedFilters');
+            const toggleText = document.getElementById('filterToggleText');
+            const toggleIcon = document.getElementById('filterToggleIcon');
+            
+            if (advancedFilters.classList.contains('hidden')) {
+                advancedFilters.classList.remove('hidden');
+                toggleText.textContent = 'Sembunyikan Filter';
+                toggleIcon.style.transform = 'rotate(180deg)';
+            } else {
+                advancedFilters.classList.add('hidden');
+                toggleText.textContent = 'Tampilkan Filter';
+                toggleIcon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // Clear all filters
+        function clearAllFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('brandFilter').value = '';
+            document.getElementById('packingFilter').value = '';
+            document.getElementById('stockFilter').value = '';
+            applyFilters();
+            
+            showNotification('Semua filter telah direset!', 'success');
+        }
+
+        // Analytics functions
+        function showAnalyticsPage() {
+            document.getElementById('dataTable').classList.add('hidden');
+            document.getElementById('analyticsPage').classList.remove('hidden');
+            renderAnalytics();
+        }
+
+        function showDataTable() {
+            document.getElementById('analyticsPage').classList.add('hidden');
+            document.getElementById('dataTable').classList.remove('hidden');
+        }
+
+        function renderAnalytics() {
+            if (allData.length === 0) return;
+
+            renderStockDistributionChart();
+            renderTopBrands();
+            renderBrandAnalysis();
+            renderPackingAnalysis();
+            renderStockAlerts();
+            renderStockValue();
+            renderStockTrends();
+            renderDetailedAnalysis();
+        }
+
+        function renderStockDistributionChart() {
+            const stats = {
+                available: allData.filter(item => item.SALDO_NUM > 10).length,
+                low: allData.filter(item => item.SALDO_NUM > 0 && item.SALDO_NUM <= 10).length,
+                out: allData.filter(item => item.SALDO_NUM === 0).length
+            };
+
+            const total = stats.available + stats.low + stats.out;
+            const availablePercent = total > 0 ? (stats.available / total * 100) : 0;
+            const lowPercent = total > 0 ? (stats.low / total * 100) : 0;
+            const outPercent = total > 0 ? (stats.out / total * 100) : 0;
+
+            const chartContainer = document.getElementById('stockDistributionChart');
+            chartContainer.innerHTML = `
+                <div class="w-full">
+                    <!-- Donut Chart Simulation -->
+                    <div class="relative w-48 h-48 mx-auto mb-6">
+                        <svg class="w-48 h-48 transform -rotate-90" viewBox="0 0 100 100">
+                            <!-- Background circle -->
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#f3f4f6" stroke-width="8"/>
+                            
+                            <!-- Available stock arc -->
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#10b981" stroke-width="8"
+                                stroke-dasharray="${availablePercent * 2.51} 251.2"
+                                stroke-dashoffset="0"/>
+                            
+                            <!-- Low stock arc -->
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#f59e0b" stroke-width="8"
+                                stroke-dasharray="${lowPercent * 2.51} 251.2"
+                                stroke-dashoffset="${-availablePercent * 2.51}"/>
+                            
+                            <!-- Out of stock arc -->
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#ef4444" stroke-width="8"
+                                stroke-dasharray="${outPercent * 2.51} 251.2"
+                                stroke-dashoffset="${-(availablePercent + lowPercent) * 2.51}"/>
+                        </svg>
+                        
+                        <!-- Center text -->
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-gray-900">${total}</div>
+                                <div class="text-sm text-gray-600">Total Produk</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Statistics -->
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div class="bg-green-50 rounded-lg p-3">
+                            <div class="text-lg font-bold text-green-600">${stats.available}</div>
+                            <div class="text-xs text-green-600">Tersedia</div>
+                            <div class="text-xs text-gray-500">${availablePercent.toFixed(1)}%</div>
+                        </div>
+                        <div class="bg-yellow-50 rounded-lg p-3">
+                            <div class="text-lg font-bold text-yellow-600">${stats.low}</div>
+                            <div class="text-xs text-yellow-600">Rendah</div>
+                            <div class="text-xs text-gray-500">${lowPercent.toFixed(1)}%</div>
+                        </div>
+                        <div class="bg-red-50 rounded-lg p-3">
+                            <div class="text-lg font-bold text-red-600">${stats.out}</div>
+                            <div class="text-xs text-red-600">Habis</div>
+                            <div class="text-xs text-gray-500">${outPercent.toFixed(1)}%</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTopBrands() {
+            const keys = window.columnKeys || {};
+            const brandKey = keys.brand || 'BRAND';
+            
+            const brandStats = {};
+            allData.forEach(item => {
+                const brand = item[brandKey] || 'Unknown';
+                if (!brandStats[brand]) {
+                    brandStats[brand] = { total: 0, totalStock: 0 };
+                }
+                brandStats[brand].total++;
+                brandStats[brand].totalStock += item.SALDO_NUM;
+            });
+
+            const sortedBrands = Object.entries(brandStats)
+                .sort(([,a], [,b]) => b.totalStock - a.totalStock)
+                .slice(0, 5);
+
+            const topBrandsContainer = document.getElementById('topBrands');
+            topBrandsContainer.innerHTML = sortedBrands.map(([brand, stats], index) => `
+                <div class="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                            ${index + 1}
+                        </div>
+                        <div>
+                            <div class="font-medium text-gray-900">${brand}</div>
+                            <div class="text-sm text-gray-600">${stats.total} produk</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-lg font-bold text-blue-600">${stats.totalStock.toLocaleString()}</div>
+                        <div class="text-xs text-gray-500">Total Stok</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderBrandAnalysis() {
+            const keys = window.columnKeys || {};
+            const brandKey = keys.brand || 'BRAND';
+            
+            const brandStats = {};
+            allData.forEach(item => {
+                const brand = item[brandKey] || 'Unknown';
+                if (!brandStats[brand]) {
+                    brandStats[brand] = { total: 0, available: 0, low: 0, out: 0 };
+                }
+                brandStats[brand].total++;
+                if (item.SALDO_NUM > 10) brandStats[brand].available++;
+                else if (item.SALDO_NUM > 0) brandStats[brand].low++;
+                else brandStats[brand].out++;
+            });
+
+            const brandAnalysisTable = document.getElementById('brandAnalysisTable');
+            brandAnalysisTable.innerHTML = Object.entries(brandStats)
+                .sort(([,a], [,b]) => b.total - a.total)
+                .map(([brand, stats]) => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="py-2 text-sm font-medium text-gray-900">${brand}</td>
+                        <td class="py-2 text-center text-sm text-gray-600">${stats.total}</td>
+                        <td class="py-2 text-center text-sm text-green-600 font-medium">${stats.available}</td>
+                        <td class="py-2 text-center text-sm text-yellow-600 font-medium">${stats.low}</td>
+                        <td class="py-2 text-center text-sm text-red-600 font-medium">${stats.out}</td>
+                    </tr>
+                `).join('');
+        }
+
+        function renderPackingAnalysis() {
+            const keys = window.columnKeys || {};
+            const packingKey = keys.packing || 'PACKING';
+            
+            const packingStats = {};
+            allData.forEach(item => {
+                const packing = item[packingKey] || 'Unknown';
+                if (!packingStats[packing]) {
+                    packingStats[packing] = { total: 0, available: 0, low: 0, out: 0 };
+                }
+                packingStats[packing].total++;
+                if (item.SALDO_NUM > 10) packingStats[packing].available++;
+                else if (item.SALDO_NUM > 0) packingStats[packing].low++;
+                else packingStats[packing].out++;
+            });
+
+            const packingAnalysisTable = document.getElementById('packingAnalysisTable');
+            packingAnalysisTable.innerHTML = Object.entries(packingStats)
+                .sort(([,a], [,b]) => b.total - a.total)
+                .map(([packing, stats]) => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="py-2 text-sm font-medium text-gray-900">${packing}</td>
+                        <td class="py-2 text-center text-sm text-gray-600">${stats.total}</td>
+                        <td class="py-2 text-center text-sm text-green-600 font-medium">${stats.available}</td>
+                        <td class="py-2 text-center text-sm text-yellow-600 font-medium">${stats.low}</td>
+                        <td class="py-2 text-center text-sm text-red-600 font-medium">${stats.out}</td>
+                    </tr>
+                `).join('');
+        }
+
+        function renderStockAlerts() {
+            const criticalItems = allData.filter(item => item.SALDO_NUM === 0);
+            const lowStockItems = allData.filter(item => item.SALDO_NUM > 0 && item.SALDO_NUM <= 10);
+            
+            const stockAlertsContainer = document.getElementById('stockAlerts');
+            
+            let alertsHtml = '';
+            
+            // Critical alerts (out of stock)
+            criticalItems.slice(0, 3).forEach(item => {
+                const keys = window.columnKeys || {};
+                const brandKey = keys.brand || 'BRAND';
+                const produkIdKey = Object.keys(item).find(col => col.toLowerCase().includes('produk')) || 'PRODUK ID';
+                
+                alertsHtml += `
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                        <div class="flex items-center space-x-2">
+                            <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                            <span class="text-sm font-medium text-red-800">KRITIS</span>
+                        </div>
+                        <div class="mt-1">
+                            <div class="text-sm font-medium text-gray-900">${item[produkIdKey]}</div>
+                            <div class="text-xs text-gray-600">${item[brandKey]} - Stok Habis</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Low stock alerts
+            lowStockItems.slice(0, 5).forEach(item => {
+                const keys = window.columnKeys || {};
+                const brandKey = keys.brand || 'BRAND';
+                const produkIdKey = Object.keys(item).find(col => col.toLowerCase().includes('produk')) || 'PRODUK ID';
+                
+                alertsHtml += `
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                        <div class="flex items-center space-x-2">
+                            <svg class="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                            <span class="text-sm font-medium text-yellow-800">RENDAH</span>
+                        </div>
+                        <div class="mt-1">
+                            <div class="text-sm font-medium text-gray-900">${item[produkIdKey]}</div>
+                            <div class="text-xs text-gray-600">${item[brandKey]} - Sisa ${item.SALDO_NUM}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (alertsHtml === '') {
+                alertsHtml = `
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <svg class="w-8 h-8 text-green-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div class="text-sm font-medium text-green-800">Semua Stok Aman</div>
+                        <div class="text-xs text-green-600">Tidak ada peringatan stok</div>
+                    </div>
+                `;
+            }
+            
+            stockAlertsContainer.innerHTML = alertsHtml;
+        }
+
+        function renderStockValue() {
+            const totalStock = allData.reduce((sum, item) => sum + item.SALDO_NUM, 0);
+            const availableStock = allData.filter(item => item.SALDO_NUM > 10).reduce((sum, item) => sum + item.SALDO_NUM, 0);
+            const lowStock = allData.filter(item => item.SALDO_NUM > 0 && item.SALDO_NUM <= 10).reduce((sum, item) => sum + item.SALDO_NUM, 0);
+            
+            const stockValueContainer = document.getElementById('stockValue');
+            stockValueContainer.innerHTML = `
+                <div class="space-y-4">
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-sm text-blue-600 font-medium">Total Stok</div>
+                                <div class="text-2xl font-bold text-blue-900">${totalStock.toLocaleString()}</div>
+                            </div>
+                            <div class="bg-blue-100 p-2 rounded-lg">
+                                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-green-50 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-sm text-green-600 font-medium">Stok Tersedia</div>
+                                <div class="text-xl font-bold text-green-900">${availableStock.toLocaleString()}</div>
+                            </div>
+                            <div class="bg-green-100 p-2 rounded-lg">
+                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-yellow-50 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-sm text-yellow-600 font-medium">Stok Rendah</div>
+                                <div class="text-xl font-bold text-yellow-900">${lowStock.toLocaleString()}</div>
+                            </div>
+                            <div class="bg-yellow-100 p-2 rounded-lg">
+                                <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderStockTrends() {
+            const keys = window.columnKeys || {};
+            const brandKey = keys.brand || 'BRAND';
+            
+            // Calculate brand performance
+            const brandPerformance = {};
+            allData.forEach(item => {
+                const brand = item[brandKey] || 'Unknown';
+                if (!brandPerformance[brand]) {
+                    brandPerformance[brand] = { total: 0, healthy: 0 };
+                }
+                brandPerformance[brand].total++;
+                if (item.SALDO_NUM > 10) brandPerformance[brand].healthy++;
+            });
+            
+            const trends = Object.entries(brandPerformance)
+                .map(([brand, stats]) => ({
+                    brand,
+                    healthyRatio: stats.total > 0 ? (stats.healthy / stats.total) : 0,
+                    total: stats.total
+                }))
+                .sort((a, b) => b.healthyRatio - a.healthyRatio)
+                .slice(0, 5);
+            
+            const stockTrendsContainer = document.getElementById('stockTrends');
+            stockTrendsContainer.innerHTML = `
+                <div class="space-y-3">
+                    <div class="text-sm font-medium text-gray-700 mb-3">Performa Brand (% Stok Sehat)</div>
+                    ${trends.map(trend => `
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="text-sm font-medium text-gray-900">${trend.brand}</div>
+                                <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                    <div class="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full" 
+                                         style="width: ${trend.healthyRatio * 100}%"></div>
+                                </div>
+                            </div>
+                            <div class="ml-3 text-sm font-bold text-gray-900">
+                                ${(trend.healthyRatio * 100).toFixed(0)}%
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderDetailedAnalysis() {
+            const detailedAnalysisTable = document.getElementById('detailedAnalysisTable');
+            
+            // Get items that need attention (out of stock or low stock)
+            const criticalItems = allData.filter(item => item.SALDO_NUM <= 10)
+                .sort((a, b) => a.SALDO_NUM - b.SALDO_NUM)
+                .slice(0, 20);
+            
+            const keys = window.columnKeys || {};
+            const brandKey = keys.brand || 'BRAND';
+            const produkIdKey = Object.keys(allData[0] || {}).find(col => col.toLowerCase().includes('produk')) || 'PRODUK ID';
+            
+            detailedAnalysisTable.innerHTML = criticalItems.map(item => {
+                const riskLevel = item.SALDO_NUM === 0 ? 'KRITIS' : 
+                                item.SALDO_NUM <= 5 ? 'TINGGI' : 'SEDANG';
+                const riskColor = item.SALDO_NUM === 0 ? 'bg-red-100 text-red-800' : 
+                                item.SALDO_NUM <= 5 ? 'bg-orange-100 text-orange-800' : 'bg-yellow-100 text-yellow-800';
+                
+                const recommendation = item.SALDO_NUM === 0 ? 'Restok Segera' : 
+                                     item.SALDO_NUM <= 5 ? 'Perlu Restok' : 'Monitor Ketat';
+                
+                const statusInfo = getStockStatus(item[item._SALDO_KEY]);
+                
+                return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 text-sm font-medium text-gray-900">${item[produkIdKey]}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">${item[brandKey]}</td>
+                        <td class="px-4 py-3 text-center text-sm font-bold ${item.SALDO_NUM > 10 ? 'text-green-600' : item.SALDO_NUM > 0 ? 'text-yellow-600' : 'text-red-600'}">${item.SALDO_NUM}</td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusInfo.class}">
+                                ${statusInfo.status}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${riskColor}">
+                                ${riskLevel}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-center text-sm font-medium text-gray-900">${recommendation}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Event listeners
+        document.getElementById('refreshBtn').addEventListener('click', loadData);
+        document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
+        document.getElementById('exportPdfBtn').addEventListener('click', exportToPDF);
+        document.getElementById('analyticsBtn').addEventListener('click', showAnalyticsPage);
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        document.getElementById('brandFilter').addEventListener('change', applyFilters);
+        document.getElementById('packingFilter').addEventListener('change', applyFilters);
+        document.getElementById('stockFilter').addEventListener('change', applyFilters);
+        
+        // Filter toggle and actions
+        document.getElementById('toggleFilters').addEventListener('click', toggleFilters);
+        document.getElementById('clearFilters').addEventListener('click', clearAllFilters);
+        document.getElementById('applyFilters').addEventListener('click', applyFilters);
+
+        // Mobile event listeners
+        document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        document.getElementById('exportExcelBtnMobile').addEventListener('click', exportToExcel);
+        document.getElementById('exportPdfBtnMobile').addEventListener('click', exportToPDF);
+        document.getElementById('refreshBtnMobile').addEventListener('click', loadData);
+        document.getElementById('analyticsBtnMobile').addEventListener('click', showAnalyticsPage);
+
+        // Analytics page event listeners
+        document.getElementById('backToTable').addEventListener('click', showDataTable);
+        document.getElementById('refreshAnalytics').addEventListener('click', function() {
+            loadData();
+            setTimeout(renderAnalytics, 500); // Render analytics after data loads
+        });
+
+        // Floating action button
+        document.getElementById('floatingMenuBtn').addEventListener('click', function() {
+            const floatingMenu = document.getElementById('floatingMenu');
+            floatingMenu.classList.toggle('hidden');
+        });
+
+        document.getElementById('floatingAnalyticsBtn').addEventListener('click', function() {
+            showAnalyticsPage();
+            document.getElementById('floatingMenu').classList.add('hidden');
+        });
+
+        document.getElementById('floatingExcelBtn').addEventListener('click', function() {
+            exportToExcel();
+            document.getElementById('floatingMenu').classList.add('hidden');
+        });
+
+        document.getElementById('floatingPdfBtn').addEventListener('click', function() {
+            exportToPDF();
+            document.getElementById('floatingMenu').classList.add('hidden');
+        });
+
+        document.getElementById('floatingRefreshBtn').addEventListener('click', function() {
+            loadData();
+            document.getElementById('floatingMenu').classList.add('hidden');
+        });
+
+        // Close floating menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const floatingMenuBtn = document.getElementById('floatingMenuBtn');
+            const floatingMenu = document.getElementById('floatingMenu');
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+            
+            if (!floatingMenuBtn.contains(e.target) && !floatingMenu.contains(e.target)) {
+                floatingMenu.classList.add('hidden');
+            }
+            
+            if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+
+        // Cache management
+        let lastFetchTime = 0;
+        const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes cache
+
+        async function loadDataWithCache() {
+            const now = Date.now();
+            
+            // Use cache if data is fresh
+            if (allData.length > 0 && (now - lastFetchTime) < CACHE_DURATION) {
+                console.log('Using cached data');
+                return;
+            }
+            
+            await loadData();
+            lastFetchTime = now;
+        }
+
+        // Load data on page load
+        loadData();
+
+        // Auto refresh every 10 minutes (reduced frequency)
+        setInterval(loadDataWithCache, 600000);
+
+        // Add visibility change listener to refresh when tab becomes active
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                loadDataWithCache();
+            }
+        });
+
+        // Modal functionality
+        function showDetailModal(item) {
+            // Get all columns dynamically
+            const columns = Object.keys(item).filter(key => !key.startsWith('_'));
+            
+            // Find columns dynamically
+            const produkIdKey = columns.find(col => col.toLowerCase().includes('produk')) || 'PRODUK ID';
+            const sizeKey = columns.find(col => col.toLowerCase().includes('size')) || 'SIZE';
+            const brandKey = columns.find(col => col.toLowerCase().includes('brand')) || 'BRAND';
+            const packingKey = columns.find(col => col.toLowerCase().includes('packing')) || 'PACKING';
+            const kodeKey = columns.find(col => col.toLowerCase().includes('kode') && !col.toLowerCase().includes('asal')) || 'KODE';
+            const kodeAsalKey = columns.find(col => col.toLowerCase().includes('kode') && col.toLowerCase().includes('asal')) || 'KODE ASAL';
+            const kgKey = columns.find(col => col.toLowerCase().includes('kg')) || 'KG';
+            const poKey = columns.find(col => col.toLowerCase().includes('po')) || 'PO';
+            const jdKey = columns.find(col => col.toLowerCase().includes('jd')) || 'JD';
+            
+            // Populate modal with item data using dynamic keys
+            document.getElementById('modal-produk-id').textContent = item[produkIdKey] || '-';
+            document.getElementById('modal-size').textContent = item[sizeKey] || '-';
+            document.getElementById('modal-brand').textContent = item[brandKey] || '-';
+            document.getElementById('modal-packing').textContent = item[packingKey] || '-';
+            document.getElementById('modal-kode').textContent = item[kodeKey] || '-';
+            document.getElementById('modal-kode-asal').textContent = item[kodeAsalKey] || '-';
+            document.getElementById('modal-saldo').textContent = item.SALDO_NUM.toLocaleString();
+            document.getElementById('modal-kg').textContent = item[kgKey] || '-';
+            document.getElementById('modal-po').textContent = item[poKey] || '-';
+            document.getElementById('modal-jd').textContent = item[jdKey] || '-';
+
+            // Set status with color
+            const stockInfo = getStockStatus(item[item._SALDO_KEY]);
+            const statusElement = document.getElementById('modal-status');
+            statusElement.textContent = stockInfo.status;
+            statusElement.className = `inline-flex px-2 py-1 text-xs font-semibold rounded-full ${stockInfo.class}`;
+
+            // Set saldo color
+            const saldoElement = document.getElementById('modal-saldo');
+            const saldoColor = item.SALDO_NUM > 10 ? 'text-green-600' : 
+                             item.SALDO_NUM > 0 ? 'text-yellow-600' : 'text-red-600';
+            saldoElement.className = `font-bold text-2xl ${saldoColor}`;
+
+            // Show stock alert if needed
+            const alertElement = document.getElementById('stockAlert');
+            const alertMessage = document.getElementById('alertMessage');
+            
+            if (item.SALDO_NUM === 0) {
+                alertElement.className = 'mt-6 p-4 rounded-lg bg-red-100 text-red-800';
+                alertMessage.textContent = 'Peringatan: Stok produk ini sudah habis!';
+                alertElement.classList.remove('hidden');
+            } else if (item.SALDO_NUM <= 10) {
+                alertElement.className = 'mt-6 p-4 rounded-lg bg-yellow-100 text-yellow-800';
+                alertMessage.textContent = 'Perhatian: Stok produk ini sudah rendah, segera lakukan restok!';
+                alertElement.classList.remove('hidden');
+            } else {
+                alertElement.classList.add('hidden');
+            }
+
+            // Show modal
+            document.getElementById('detailModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+            document.body.style.overflow = 'auto'; // Restore scrolling
+        }
+
+        // Modal event listeners
+        document.getElementById('closeModal').addEventListener('click', closeDetailModal);
+        document.getElementById('closeModalBtn').addEventListener('click', closeDetailModal);
+
+        // Close modal when clicking outside
+        document.getElementById('detailModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDetailModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !document.getElementById('detailModal').classList.contains('hidden')) {
+                closeDetailModal();
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984b96bdd3683883',t:'MTc1ODgxNDUwMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
