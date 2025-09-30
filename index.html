@@ -232,22 +232,22 @@
             <div class="mobile-stat-card border-l-4 border-blue-500">
                 <div class="text-2xl mb-1">📦</div>
                 <div class="text-lg font-bold text-gray-900" id="totalItems">-</div>
-                <div class="text-xs text-gray-500">Total Items</div>
+                <div class="text-xs text-gray-500">Total MC</div>
             </div>
             <div class="mobile-stat-card border-l-4 border-green-500">
                 <div class="text-2xl mb-1">🏭</div>
                 <div class="text-lg font-bold text-gray-900" id="gimLocation">-</div>
-                <div class="text-xs text-gray-500">GIM Items</div>
+                <div class="text-xs text-gray-500">GIM MC</div>
             </div>
             <div class="mobile-stat-card border-l-4 border-yellow-500">
                 <div class="text-2xl mb-1">📦</div>
                 <div class="text-lg font-bold text-gray-900" id="contLocation">-</div>
-                <div class="text-xs text-gray-500">CONT Items</div>
+                <div class="text-xs text-gray-500">CONT MC</div>
             </div>
             <div class="mobile-stat-card border-l-4 border-orange-500">
                 <div class="text-2xl mb-1">🏪</div>
                 <div class="text-lg font-bold text-gray-900" id="wkbLocation">-</div>
-                <div class="text-xs text-gray-500">WKB Items</div>
+                <div class="text-xs text-gray-500">WKB MC</div>
             </div>
         </div>
 
@@ -699,7 +699,7 @@
 
         // Update dashboard statistics
         function updateDashboard() {
-            const totalItems = inventoryData.length;
+            const totalItems = inventoryData.reduce((sum, item) => sum + (item.SALDO || 0), 0);
             
             let gimItems = 0, contItems = 0, wkbItems = 0;
             let gimWeight = 0, contWeight = 0, wkbWeight = 0;
@@ -719,6 +719,24 @@
                     wkbWeight += weight;
                 }
             });
+            
+            inventoryData.forEach(item => {
+                const location = (item.RAW || '').toUpperCase();
+                const Saldo = item.Saldo || 0;
+                
+                if (location.includes('GIM')) {
+                    gimItems++;
+                    gimItems += Saldo;
+                } else if (location.includes('CONT')) {
+                    contItems++;
+                    contItems += Saldo;
+                } else {
+                    wkbItems++;
+                    wkbItems += Saldo;
+                }
+            });
+            
+            
 
             // Update stats
             document.getElementById('totalItems').textContent = totalItems.toLocaleString();
@@ -923,6 +941,7 @@
         let itemsLoaded = 50;
         function loadMoreItems() {
             const container = document.getElementById('inventoryCards');
+            
             const data = filteredInventoryData.length > 0 ? filteredInventoryData : inventoryData;
             
             const nextBatch = data.slice(itemsLoaded, itemsLoaded + 50);
@@ -960,6 +979,8 @@
                 </div>`;
             }).join('');
             
+            
+            
             // Remove existing load more button
             const existingBtn = container.querySelector('.bg-gray-50');
             if (existingBtn) existingBtn.remove();
@@ -980,6 +1001,10 @@
                 container.innerHTML += loadMoreBtn;
             }
         }
+        
+        
+        
+        
 
         // Update outbound table
         function updateOutboundTable(filteredDate = null, filteredProduct = null) {
@@ -1094,6 +1119,8 @@
                         </button>
                     </div>
                 `;
+                
+                
             }
             
             updateOutboundSummary(outboundData);
@@ -1647,6 +1674,7 @@
         // Show all outbound for product
         function showAllOutboundForProduct(productId) {
             const item = inventoryData.find(i => i['PRODUK ID'] === productId);
+            
             if (!item) return;
 
             const modal = document.getElementById('outboundHistoryModal');
@@ -1745,6 +1773,10 @@
         let outboundItemsLoaded = 30;
         function loadMoreOutbound() {
             // This would need to be implemented based on current filters
+            
+            
+            
+            
             // For now, just increase the limit and refresh
             outboundItemsLoaded += 30;
             updateOutboundTable();
