@@ -9,1020 +9,630 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
     <style>
+        :root {
+            --color-background-start: #0f172a;
+            --color-background-end: #1e293b;
+            --color-surface: #1e293b;
+            --color-surface-translucent: rgba(30, 41, 59, 0.6);
+            --color-border: rgba(255, 255, 255, 0.1);
+            --color-text-primary: #e2e8f0;
+            --color-text-secondary: #94a3b8;
+            --color-primary: #3b82f6;
+            --color-primary-dark: #2563eb;
+            --color-secondary: #8b5cf6;
+            --color-success: #10b981;
+            --color-success-dark: #059669;
+            --color-info: #0ea5e9;
+            --color-info-dark: #0284c7;
+            --border-radius-lg: 24px;
+            --border-radius-md: 16px;
+            --border-radius-sm: 12px;
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 12px 40px rgba(0, 0, 0, 0.2);
+            --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
         body {
             box-sizing: border-box;
-            font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: var(--font-family-sans);
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+            background-color: var(--color-background-start);
+            background-image: linear-gradient(135deg, var(--color-background-start) 0%, var(--color-background-end) 100%);
             min-height: 100vh;
-            color: #e2e8f0;
+            color: var(--color-text-primary);
             line-height: 1.6;
-            position: relative;
             overflow-x: hidden;
-        }
-        
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.4) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%),
-                linear-gradient(135deg, rgba(15, 15, 35, 0.8) 0%, rgba(26, 26, 46, 0.6) 100%);
-            pointer-events: none;
-            z-index: -1;
-        }
-        
-        .animated-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -2;
-            overflow: hidden;
-        }
-        
-        .bg-particle {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            animation: float-particle 20s linear infinite;
-        }
-        
-        @keyframes float-particle {
-            0% {
-                transform: translateY(100vh) translateX(0px);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(-100px) translateX(100px);
-                opacity: 0;
-            }
         }
         
         .container {
             max-width: 1600px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 2rem;
         }
         
         .header {
-            background: rgba(15, 23, 42, 0.8);
+            background: var(--color-surface-translucent);
             backdrop-filter: blur(30px);
-            border-radius: 24px;
-            padding: 40px;
-            margin-bottom: 30px;
-            box-shadow: 
-                0 20px 60px rgba(0,0,0,0.3),
-                0 0 0 1px rgba(255,255,255,0.1),
-                inset 0 1px 0 rgba(255,255,255,0.2);
+            border-radius: var(--border-radius-lg);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg), 0 0 0 1px var(--color-border);
             text-align: center;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid var(--color-border);
             position: relative;
-            overflow: hidden;
-        }
-        
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-            animation: shimmer 4s infinite;
-        }
-        
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
         }
         
         .header h1 {
-            margin: 0 0 16px 0;
-            font-size: clamp(2.5rem, 5vw, 4rem);
-            font-weight: 900;
+            margin: 0 0 1rem 0;
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-weight: 800;
             letter-spacing: -0.03em;
-            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #f472b6 100%);
+            background: linear-gradient(135deg, var(--color-info) 0%, var(--color-secondary) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 4px 20px rgba(96, 165, 250, 0.3);
-            position: relative;
-            z-index: 1;
+            text-shadow: 0 4px 20px rgba(14, 165, 233, 0.2);
         }
         
         .header p {
-            color: rgba(226, 232, 240, 0.8);
+            color: var(--color-text-secondary);
             margin: 0;
-            font-size: clamp(1.1rem, 2.5vw, 1.4rem);
-            font-weight: 500;
-            position: relative;
-            z-index: 1;
+            font-size: clamp(1.1rem, 2.5vw, 1.25rem);
         }
         
         .status-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 24px;
-            padding: 16px 24px;
-            background: rgba(30, 41, 59, 0.6);
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.1);
-            position: relative;
-            z-index: 1;
+            margin-top: 1.5rem;
+            padding: 1rem 1.5rem;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--color-border);
         }
         
         .status-item {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 0.75rem;
             font-size: 0.875rem;
-            color: rgba(226, 232, 240, 0.7);
+            color: var(--color-text-secondary);
         }
-        
+
         .status-indicator {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            background: #10b981;
+            background: var(--color-success);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.7);
             animation: pulse-green 2s infinite;
         }
         
         @keyframes pulse-green {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.9); }
         }
         
-        .controls {
-            background: rgba(15, 23, 42, 0.8);
+        .controls, .data-container {
+            background: var(--color-surface-translucent);
             backdrop-filter: blur(30px);
-            border-radius: 24px;
-            padding: 32px;
-            margin-bottom: 30px;
-            box-shadow: 
-                0 20px 60px rgba(0,0,0,0.3),
-                0 0 0 1px rgba(255,255,255,0.1),
-                inset 0 1px 0 rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg), 0 0 0 1px var(--color-border);
+            border: 1px solid var(--color-border);
         }
         
         .nav-tabs {
             display: flex;
-            gap: 8px;
-            margin-bottom: 32px;
-            background: rgba(30, 41, 59, 0.6);
-            border-radius: 20px;
-            padding: 8px;
-            border: 1px solid rgba(255,255,255,0.1);
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: var(--border-radius-md);
+            padding: 0.5rem;
         }
         
         .nav-tab {
             flex: 1;
-            padding: 16px 24px;
+            padding: 1rem 1.5rem;
             border: none;
             background: transparent;
-            border-radius: 16px;
+            border-radius: var(--border-radius-sm);
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             font-weight: 600;
-            font-size: 15px;
+            font-size: 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            color: rgba(226, 232, 240, 0.6);
-            position: relative;
-            overflow: hidden;
+            gap: 0.75rem;
+            color: var(--color-text-secondary);
         }
         
-        .nav-tab::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(96, 165, 250, 0.1) 0%, rgba(167, 139, 250, 0.1) 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .nav-tab:hover::before {
-            opacity: 1;
+        .nav-tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--color-text-primary);
         }
         
         .nav-tab.active {
-            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
             color: white;
-            box-shadow: 
-                0 8px 32px rgba(59, 130, 246, 0.4),
-                inset 0 1px 0 rgba(255,255,255,0.2);
-            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
         }
-        
-        .nav-tab.active::before {
-            opacity: 0;
-        }
-        
-        .filter-section {
-            background: rgba(30, 41, 59, 0.5);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 32px;
-            margin-bottom: 28px;
-            border: 1px solid rgba(255,255,255,0.15);
-            box-shadow: 
-                0 12px 40px rgba(0,0,0,0.2),
-                inset 0 1px 0 rgba(255,255,255,0.1);
-        }
-        
+
         .filter-section h3 {
-            margin: 0 0 20px 0;
-            color: #e2e8f0;
-            font-size: 1.2rem;
-            font-weight: 700;
+            margin: 0 0 1.5rem 0;
+            font-size: 1.25rem;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 0.65rem;
         }
         
         .filter-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 0.8fr));
+            gap: 2.6rem;
             align-items: end;
         }
         
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-        }
-        
         .filter-group label {
-            font-weight: 600;
-            color: #cbd5e1;
-            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            margin-bottom: 0.5rem;
             font-size: 0.875rem;
-            letter-spacing: 0.025em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
         
         .filter-group input, .filter-group select {
-            padding: 18px 24px;
-            border: 2px solid rgba(71, 85, 105, 0.6);
-            border-radius: 16px;
-            font-size: 15px;
-            font-weight: 500;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(15px);
-            color: #e2e8f0;
-            box-shadow: 
-                0 4px 16px rgba(0,0,0,0.1),
-                inset 0 1px 0 rgba(255,255,255,0.05);
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--color-text-primary);
         }
         
         .filter-group input:focus, .filter-group select:focus {
             outline: none;
-            border-color: #3b82f6;
-            box-shadow: 
-                0 0 0 4px rgba(59, 130, 246, 0.2),
-                0 8px 32px rgba(59, 130, 246, 0.1);
-            background: rgba(30, 41, 59, 0.9);
-            transform: translateY(-2px);
-        }
-        
-        .filter-group input::placeholder {
-            color: rgba(148, 163, 184, 0.7);
-            font-weight: 400;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
         
         .action-buttons {
             display: flex;
-            gap: 16px;
+            gap: 1rem;
             flex-wrap: wrap;
             justify-content: center;
-            margin-top: 24px;
+            margin-top: 2rem;
         }
         
         .btn {
-            padding: 16px 32px;
-            border: none;
-            border-radius: 12px;
+            padding: 0.875rem 2rem;
+            border: 1px solid transparent;
+            border-radius: var(--border-radius-sm);
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 15px;
-            display: flex;
+            transition: all 0.3s ease;
+            font-size: 0.9375rem;
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
-            position: relative;
-            overflow: hidden;
-            letter-spacing: 0.025em;
-            min-width: 140px;
+            gap: 0.5rem;
             justify-content: center;
         }
-        
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.6s;
+
+        .btn svg {
+            width: 1.25em;
+            height: 1.25em;
         }
-        
-        .btn:hover::before {
-            left: 100%;
-        }
-        
+
         .btn-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            background: var(--color-primary);
             color: white;
-            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
-            border: 1px solid rgba(255,255,255,0.2);
+            border-color: var(--color-primary-dark);
         }
-        
         .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 16px 48px rgba(59, 130, 246, 0.5);
-            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            background: var(--color-primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
         }
-        
+
         .btn-success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            background: var(--color-success);
             color: white;
-            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.4);
-            border: 1px solid rgba(255,255,255,0.2);
+            border-color: var(--color-success-dark);
         }
-        
         .btn-success:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 16px 48px rgba(16, 185, 129, 0.5);
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            background: var(--color-success-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
         }
-        
+
         .btn-info {
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            background: var(--color-info);
             color: white;
-            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4);
-            border: 1px solid rgba(255,255,255,0.2);
+            border-color: var(--color-info-dark);
         }
-        
         .btn-info:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 16px 48px rgba(139, 92, 246, 0.5);
-            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            background: var(--color-info-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(14, 165, 233, 0.3);
         }
-        
+
         .btn-secondary {
-            background: linear-gradient(135deg, rgba(71, 85, 105, 0.8) 0%, rgba(51, 65, 85, 0.8) 100%);
-            color: #e2e8f0;
-            box-shadow: 0 8px 32px rgba(71, 85, 105, 0.3);
-            border: 1px solid rgba(255,255,255,0.2);
+            background: var(--color-surface);
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-border);
         }
-        
         .btn-secondary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 16px 48px rgba(71, 85, 105, 0.4);
-            background: linear-gradient(135deg, rgba(51, 65, 85, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%);
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
         }
-        
-        .data-container {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(30px);
-            border-radius: 24px;
-            padding: 32px;
-            box-shadow: 
-                0 20px 60px rgba(0,0,0,0.3),
-                0 0 0 1px rgba(255,255,255,0.1),
-                inset 0 1px 0 rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        
+
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-            margin-bottom: 32px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
         }
         
         .stat-card {
-            background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(20px);
-            padding: 28px 24px;
-            border-radius: 20px;
+            background: var(--color-surface);
+            padding: 1.5rem;
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--color-border);
             text-align: center;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 
-                0 12px 40px rgba(0,0,0,0.2),
-                inset 0 1px 0 rgba(255,255,255,0.1);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
         
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #f472b6 100%);
-            border-radius: 20px 20px 0 0;
-        }
-        
-        .stat-card::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
-            opacity: 0;
-            transition: opacity 0.4s ease;
-        }
-        
         .stat-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 
-                0 20px 60px rgba(0,0,0,0.3),
-                inset 0 1px 0 rgba(255,255,255,0.2);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--color-primary);
         }
-        
-        .stat-card:hover::after {
-            opacity: 1;
-        }
-        
+
         .stat-icon {
-            font-size: 2.5rem;
-            margin-bottom: 16px;
-            display: block;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--color-secondary);
         }
         
         .stat-number {
-            font-size: clamp(1.8rem, 3vw, 2.5rem);
-            font-weight: 900;
-            color: #e2e8f0;
-            margin: 0 0 8px 0;
-            letter-spacing: -0.03em;
-            text-shadow: 0 2px 15px rgba(0,0,0,0.3);
-            position: relative;
-            z-index: 1;
+            font-size: clamp(1.8rem, 3vw, 2.25rem);
+            font-weight: 700;
+            color: var(--color-text-primary);
+            margin: 0 0 0.25rem 0;
         }
         
         .stat-label {
-            color: rgba(203, 213, 225, 0.8);
+            color: var(--color-text-secondary);
             font-size: 0.875rem;
-            font-weight: 600;
-            margin: 0;
-            letter-spacing: 0.05em;
+            font-weight: 500;
             text-transform: uppercase;
-            position: relative;
-            z-index: 1;
+            letter-spacing: 0.05em;
         }
-        
 
-        
         .table-container {
             overflow-x: auto;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 
-                0 12px 40px rgba(0,0,0,0.2),
-                inset 0 1px 0 rgba(255,255,255,0.1);
-            backdrop-filter: blur(20px);
-            margin-bottom: 24px;
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--color-border);
         }
         
         table {
             width: 100%;
             border-collapse: collapse;
-            background: rgba(30, 41, 59, 0.3);
-            backdrop-filter: blur(15px);
+        }
+        
+        th, td {
+            padding: 1rem 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid var(--color-border);
         }
         
         th {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.9) 0%, rgba(139, 92, 246, 0.9) 100%);
-            color: white;
-            padding: 20px 16px;
-            text-align: left;
-            font-weight: 700;
+            background: rgba(15, 23, 42, 0.8);
+            font-weight: 600;
             font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
             position: sticky;
             top: 0;
-            z-index: 10;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            border-bottom: 2px solid rgba(255,255,255,0.2);
-            text-shadow: 0 1px 8px rgba(0,0,0,0.3);
-        }
-        
-        td {
-            padding: 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: #e2e8f0;
         }
         
         tr:hover {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
-            transform: scale(1.001);
-            transition: all 0.3s ease;
-        }
-        
-        .view-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-        
-        .view-toggle {
-            display: flex;
-            background: rgba(71, 85, 105, 0.3);
-            border-radius: 12px;
-            padding: 4px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .view-toggle button {
-            padding: 12px 20px;
-            border: none;
-            background: transparent;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: rgba(203, 213, 225, 0.7);
-        }
-        
-        .view-toggle button.active {
-            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-            color: white;
-            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
-        }
-        
-        .advanced-search {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 28px;
-            margin-bottom: 28px;
-            border: 1px solid rgba(255,255,255,0.15);
-            box-shadow: 
-                0 8px 32px rgba(0,0,0,0.15),
-                inset 0 1px 0 rgba(255,255,255,0.08);
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: 20px 24px 20px 56px;
-            border: 2px solid rgba(71, 85, 105, 0.6);
-            border-radius: 18px;
-            font-size: 16px;
-            font-weight: 500;
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(15px);
-            color: #e2e8f0;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            box-shadow: 
-                0 6px 24px rgba(0,0,0,0.15),
-                inset 0 1px 0 rgba(255,255,255,0.05);
-        }
-        
-        .search-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+            background-color: rgba(255, 255, 255, 0.03);
         }
         
         .search-wrapper {
-            position: relative;
+    position: relative;
+    max-width: 320px; /* ✅ batasi lebar maksimal */
+    width: 100%;      /* isi penuh parent tapi tidak lebih dari 320px */
+    margin: 0 auto;   /* ✅ agar tetap di tengah */
+}
+
+.search-wrapper input {
+    width: 100%;
+    padding: 0.9rem 1.1rem 0.9rem 2.8rem; /* ruang untuk ikon kiri */
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    background: rgba(15, 23, 42, 0.8);
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
+    box-sizing: border-box;
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-secondary);
+    pointer-events: none;
+
+        }
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem 1rem 3.5rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            font-size: 1rem;
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--color-text-primary);
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
         
-        .search-icon {
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: rgba(148, 163, 184, 0.8);
-            font-size: 1.3rem;
-            z-index: 1;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 60px 40px;
-            color: rgba(203, 213, 225, 0.7);
-        }
-        
+        .loading { text-align: center; padding: 4rem; }
         .spinner {
-            border: 3px solid rgba(71, 85, 105, 0.3);
-            border-top: 3px solid #3b82f6;
+            border: 3px solid var(--color-border);
+            border-top: 3px solid var(--color-primary);
             border-radius: 50%;
             width: 40px;
             height: 40px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+            margin: 0 auto 1rem;
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
         
         .pagination {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 8px;
-            margin-top: 32px;
+            gap: 0.5rem;
+            margin-top: 2rem;
             flex-wrap: wrap;
         }
         
         .pagination button {
-            padding: 12px 16px;
-            border: 1px solid rgba(71, 85, 105, 0.5);
-            background: rgba(30, 41, 59, 0.6);
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--color-border);
+            background: transparent;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-weight: 600;
-            font-size: 14px;
-            min-width: 44px;
-            color: #cbd5e1;
+            font-weight: 500;
+            color: var(--color-text-secondary);
         }
-        
         .pagination button:hover:not(:disabled) {
-            background: rgba(59, 130, 246, 0.2);
-            border-color: #3b82f6;
-            color: #60a5fa;
-            transform: translateY(-2px);
-        }
-        
-        .pagination button.active {
-            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            background: var(--color-primary);
+            border-color: var(--color-primary);
             color: white;
-            border-color: #3b82f6;
-            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
         }
-        
+        .pagination button.active {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
+            font-weight: 600;
+        }
         .pagination button:disabled {
-            opacity: 0.4;
+            opacity: 0.5;
             cursor: not-allowed;
         }
         
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 24px;
+            gap: 1.5rem;
         }
         
         .location-card {
-            background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 28px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.2);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
+            background: var(--color-surface);
+            border-radius: var(--border-radius-md);
+            padding: 1.75rem;
+            border: 1px solid var(--color-border);
+            transition: all 0.3s ease;
         }
-        
-        .location-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-        }
-        
-        .wkb-card::before {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-        }
-        
-        .gim-card::before {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        }
-        
-        .cont-card::before {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        }
-        
-        .total-card::before {
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-        }
-        
         .location-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
         }
         
         .location-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
+            margin-bottom: 1.5rem;
         }
-        
         .location-header h3 {
-            color: #e2e8f0;
             margin: 0;
-            font-size: 1.4rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
+            font-size: 1.5rem;
+            font-weight: 700;
         }
         
         .location-badge {
-            padding: 6px 14px;
-            border-radius: 20px;
+            padding: 0.375rem 0.875rem;
+            border-radius: 999px;
             font-size: 0.75rem;
-            font-weight: 700;
+            font-weight: 600;
             letter-spacing: 0.025em;
-            text-transform: uppercase;
             color: white;
         }
+        .wkb { background: var(--color-primary); }
+        .gim { background: var(--color-success); }
+        .cont { background: #f59e0b; }
+        .total { background: var(--color-secondary); }
         
-        .location-badge.wkb {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-        }
-        
-        .location-badge.gim {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        }
-        
-        .location-badge.cont {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        }
-        
-        .location-badge.total {
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-        }
-        
-        .location-stats {
-            display: grid;
-            gap: 16px;
-        }
-        
+        .location-stats { display: grid; gap: 1rem; }
         .location-stat {
             display: flex;
             align-items: center;
-            gap: 16px;
-            padding: 16px;
-            background: rgba(15, 23, 42, 0.4);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--color-background-start);
+            border-radius: var(--border-radius-sm);
         }
         
         .stat-icon-large {
-            font-size: 2rem;
-            width: 56px;
-            height: 56px;
+            font-size: 1.5rem;
+            width: 50px;
+            height: 50px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(59, 130, 246, 0.1);
-            border-radius: 12px;
-            border: 1px solid rgba(59, 130, 246, 0.2);
-        }
-        
-        .stat-info {
-            flex: 1;
+            background: var(--color-surface);
+            border-radius: 8px;
         }
         
         .stat-value {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: #e2e8f0;
-            margin: 0 0 4px 0;
-            letter-spacing: -0.02em;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
         }
         
         .stat-unit {
-            color: rgba(203, 213, 225, 0.7);
+            color: var(--color-text-secondary);
             font-size: 0.875rem;
-            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.025em;
         }
-        
-        .export-options {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
 
+        .fade-in { animation: fadeIn 0.6s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            padding: 1.5rem;
+            border-radius: var(--border-radius-md);
+            margin: 2rem 0;
+            text-align: center;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
         
         @media (max-width: 768px) {
-            .container {
-                padding: 16px;
-            }
-            
-            .header {
-                padding: 24px 20px;
-                margin-bottom: 20px;
-            }
-            
-            .controls, .data-container {
-                padding: 20px;
-                margin-bottom: 20px;
-            }
-            
-            .filter-grid {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-                gap: 12px;
-            }
-            
-            .btn {
-                width: 100%;
-                justify-content: center;
-                padding: 16px 24px;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 16px;
-            }
-            
-            .nav-tabs {
-                flex-direction: column;
-                gap: 8px;
-            }
-            
-            .view-controls {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 12px;
-            }
-            
-            .chart-container {
-                height: 300px;
-                padding: 16px;
-            }
+            .container { padding: 1rem; }
+            .header, .controls, .data-container { padding: 1.5rem; }
+            .nav-tabs { flex-direction: column; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
-        
         @media (max-width: 480px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .stat-card {
-                padding: 20px 16px;
-            }
-            
-            .filter-group input, .filter-group select {
-                padding: 14px 16px;
-                font-size: 16px;
-            }
-            
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.6s ease-out;
-        }
-        
-        @keyframes fadeIn {
-            from { 
-                opacity: 0; 
-                transform: translateY(20px); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0); 
-            }
-        }
-        
-        .slide-up {
-            animation: slideUp 0.4s ease-out;
-        }
-        
-        @keyframes slideUp {
-            from { 
-                opacity: 0; 
-                transform: translateY(30px); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0); 
-            }
+            .stats-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <!-- Animated Background -->
-    <div class="animated-bg" id="animatedBg"></div>
-    
     <div class="container">
-        <div class="header fade-in">
-            <h1>🚀 STOK CS WKB</h1>
-            <p>By PPIC</p>
+        <header class="header fade-in">
+            <h1>STOK CS WKB</h1>
+            <p>Inventory Dashboard by PPIC</p>
             <div class="status-bar">
                 <div class="status-item">
                     <div class="status-indicator"></div>
-                    <span>System Online</span>
+                    <span>Online</span>
                 </div>
                 <div class="status-item" id="lastModified">
-                    📅 Loading data info...
-                </div>
+                    </div>
             </div>
-        </div>
+        </header>
         
-        <div class="controls slide-up">
+        <div class="controls fade-in" style="animation-delay: 0.1s;">
             <div class="nav-tabs">
                 <button class="nav-tab active" onclick="switchTab('inventory')" id="inventoryTab">
-                    📊 Inventory Data
+                  <svg xmlns="http://www.w3.org/2000/svg" 
+     fill="none" 
+     viewBox="0 0 24 24" 
+     stroke-width="1.5" 
+     stroke="currentColor" 
+     width="20" height="20">
+  <path stroke-linecap="round" stroke-linejoin="round" 
+        d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+</svg>
+                    Inventory Data
                 </button>
                 <button class="nav-tab" onclick="switchTab('dashboard')" id="dashboardTab">
-                    🏢 Location Overview
+                    <svg xmlns="http://www.w3.org/2000/svg" 
+     fill="none" 
+     viewBox="0 0 24 24" 
+     stroke-width="1.5" 
+     stroke="currentColor" 
+     width="20" height="20">
+  <path stroke-linecap="round" stroke-linejoin="round" 
+        d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+</svg>
+                    Location Overview
                 </button>
             </div>
         </div>
 
-        <!-- Inventory Tab Content -->
-        <div id="inventoryContent" class="tab-content">
-            <div class="controls">
+        <div id="inventoryContent" class="tab-content active">
+            <div class="controls fade-in" style="animation-delay: 0.2s;">
                 <div class="filter-section">
-                    <h3>🔍 Search & Filters</h3>
-                    <div class="advanced-search">
-                        <div class="search-wrapper">
-                            <span class="search-icon">🔍</span>
-                            <input type="text" class="search-input" id="globalSearch" placeholder="Search across all fields....">
-                        </div>
+                    <h3>
+                        <svg xmlns="http://www.w3.org/2000/svg" 
+     fill="none" 
+     viewBox="0 0 24 24" 
+     stroke-width="1.5" 
+     stroke="currentColor" 
+     width="16" height="16">
+  <path stroke-linecap="round" stroke-linejoin="round" 
+        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+</svg>
+                        Search & Filters
+                    </h3>
+                    <div class="search-wrapper" style="margin-bottom: 1.5rem;">
+                        <span class="search-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
+                        </span>
+                        <input type="text" class="search-input" id="globalSearch" placeholder="Search across all fields...">
                     </div>
                     <div class="filter-grid">
                         <div class="filter-group">
-                            <label for="searchProduk">🏷️ Product ID</label>
-                            <input type="text" id="searchProduk" placeholder="Select or type product ID..." list="produkList">
+                            <label for="searchProduk">Product ID</label>
+                            <input type="text" id="searchProduk" placeholder="Type product ID..." list="produkList">
                             <datalist id="produkList"></datalist>
                         </div>
                         <div class="filter-group">
-                            <label for="searchPacking">📦 Packing</label>
-                            <input type="text" id="searchPacking" placeholder="Select or type packing..." list="packingList">
+                            <label for="searchPacking">Packing</label>
+                            <input type="text" id="searchPacking" placeholder="Type packing..." list="packingList">
                             <datalist id="packingList"></datalist>
                         </div>
                         <div class="filter-group">
-                            <label for="searchBrand">🏢 Brand</label>
-                            <input type="text" id="searchBrand" placeholder="Select or type brand..." list="brandList">
+                            <label for="searchBrand">Brand</label>
+                            <input type="text" id="searchBrand" placeholder="Type brand..." list="brandList">
                             <datalist id="brandList"></datalist>
                         </div>
                         <div class="filter-group">
-                            <label for="searchPO">📋 PO</label>
-                            <input type="text" id="searchPO" placeholder="Select or type PO..." list="poList">
+                            <label for="searchPO">PO</label>
+                            <input type="text" id="searchPO" placeholder="Type PO..." list="poList">
                             <datalist id="poList"></datalist>
                         </div>
                         <div class="filter-group">
-                            <label for="filterLocation">📍 Location</label>
+                            <label for="filterLocation">Location</label>
                             <select id="filterLocation">
                                 <option value="">All Locations</option>
-                                <option value="GIM">🏭 GIM</option>
-                                <option value="WKB">🏢 WKB</option>
-                                <option value="CONT">📦 CONT</option>
+                                <option value="GIM">GIM</option>
+                                <option value="WKB">WKB</option>
+                                <option value="CONT">CONT</option>
                             </select>
                         </div>
                     </div>
@@ -1030,79 +640,57 @@
                 
                 <div class="action-buttons">
                     <button class="btn btn-primary" onclick="applyFilters()">
-                        ✅ Apply Filters
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.572a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" /></svg>
+                        Apply Filters
                     </button>
                     <button class="btn btn-secondary" onclick="clearFilters()">
-                        🗑️ Clear All
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.664 0l3.18-3.182m-3.182-4.991v4.99" /></svg>
+                        Clear All
                     </button>
-                    <button class="btn btn-primary" onclick="loadData()">
-                        🔄 Refresh Data
-                    </button>
-                    
                     <button class="btn btn-success" onclick="exportToExcel()">
-                        📊 Export Excel
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125v-1.5c0-.621.504-1.125 1.125-1.125H3.375m17.25 0a1.125 1.125 0 001.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-1.875m-14.25-7.5l1.5-1.5m0 0l1.5 1.5m-1.5-1.5v11.25m1.5-11.25l1.5 1.5m-1.5-1.5v11.25m1.5-11.25l1.5 1.5m-1.5-1.5v11.25m1.5-11.25l1.5 1.5M12 19.5v-11.25m0 0l1.5 1.5m-1.5-1.5l-1.5-1.5m0 0v11.25m-1.5-11.25l-1.5 1.5m1.5-1.5v11.25m1.5-1.5l-1.5 1.5m0 0v11.25m6.75-11.25v11.25m0 0l-1.5 1.5m1.5-1.5l-1.5-1.5m0 0v-11.25m-1.5 11.25l-1.5-1.5m1.5 1.5V8.25m1.5 0v11.25" /></svg>
+                        Export Excel
                     </button>
-                    
                     <button class="btn btn-info" onclick="exportToPDF()">
-                        📄 Export PDF
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+                        Export PDF
                     </button>
                 </div>
             </div>
             
-            <div class="data-container">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <span class="stat-icon">📦</span>
-                        <div class="stat-number" id="totalProducts">-</div>
-                        <div class="stat-label">Total Products</div>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-icon">📊</span>
-                        <div class="stat-number" id="totalSaldo">-</div>
-                        <div class="stat-label">Total Cartons</div>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-icon">⚖️</span>
-                        <div class="stat-number" id="totalKg">-</div>
-                        <div class="stat-label">Total Weight (KG)</div>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-icon">🏢</span>
-                        <div class="stat-number" id="uniqueBrands">-</div>
-                        <div class="stat-label">Active Brands</div>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-icon">📍</span>
-                        <div class="stat-number" id="uniqueLocations">-</div>
-                        <div class="stat-label">Active Locations</div>
-                    </div>
-                </div>
-                
-
-                
+            <div class="data-container fade-in" style="animation-delay: 0.3s;">
                 <div id="loadingIndicator" class="loading">
                     <div class="spinner"></div>
-                    <p>Loading advanced inventory data...</p>
+                    <p>Loading inventory data...</p>
                 </div>
                 
-                <div id="errorMessage" class="error" style="display: none;"></div>
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
                 
                 <div id="dataDisplay" style="display: none;">
-                    <div class="view-controls">
-                        <div class="view-toggle">
-                            <button id="tableViewBtn" class="active" onclick="switchView('table')">
-                                📋 Table View
-                            </button>
-                            <button id="cardViewBtn" onclick="switchView('card')">
-                                🃏 Card View
-                            </button>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalProducts">-</div>
+                            <div class="stat-label">Total Products</div>
                         </div>
-                        <div class="pagination-info" id="paginationInfo">
-                            Showing 1-20 of 100 products
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalSaldo">-</div>
+                            <div class="stat-label">Total Cartons</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalKg">-</div>
+                            <div class="stat-label">Total Weight (KG)</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="uniqueBrands">-</div>
+                            <div class="stat-label">Active Brands</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="uniqueLocations">-</div>
+                            <div class="stat-label">Active Locations</div>
                         </div>
                     </div>
                     
-                    <div class="table-container" id="tableContainer">
+                    <div class="table-container">
                         <table id="inventoryTable">
                             <thead>
                                 <tr>
@@ -1115,419 +703,267 @@
                                     <th>Location</th>
                                 </tr>
                             </thead>
-                            <tbody id="tableBody">
-                            </tbody>
+                            <tbody id="tableBody"></tbody>
                         </table>
                     </div>
                     
-                    <div class="cards-container" id="cardsContainer" style="display: none;">
-                    </div>
-                    
-                    <div class="pagination" id="paginationContainer">
-                        <button id="prevBtn" onclick="changePage(-1)">‹ Previous</button>
-                        <div id="pageNumbers"></div>
-                        <button id="nextBtn" onclick="changePage(1)">Next ›</button>
-                        <div class="pagination-select">
-                            <span>Items per page:</span>
-                            <select id="itemsPerPage" onchange="changeItemsPerPage()">
-                                <option value="10">10</option>
-                                <option value="20" selected>20</option>
-                                <option value="50">50</option>
-                                <option value="100">100</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="noDataMessage" class="no-data" style="display: none;">
-                    <p>📭 No data matches your current filters</p>
+                    <div class="pagination" id="paginationContainer"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Dashboard Tab Content -->
-        <div id="dashboardContent" class="tab-content" style="display: none;">
-            <div class="data-container">
-                <div class="dashboard-header" style="text-align: center; margin-bottom: 32px;">
-                    <h2 style="color: #e2e8f0; margin: 0 0 16px 0; font-size: 2rem; font-weight: 800;">🏢 Location Analytics Dashboard</h2>
-                    <p style="color: rgba(203, 213, 225, 0.8); margin: 0; font-size: 1.1rem;"> </p>
-                </div>
-                
+        <div id="dashboardContent" class="tab-content">
+            <div class="data-container fade-in">
+                <h2 style="text-align: center; margin: 0 0 2rem 0;">Location Analytics Dashboard</h2>
                 <div class="dashboard-grid">
-                    <div class="location-card wkb-card">
+                    <div class="location-card">
                         <div class="location-header">
-                            <h3>🏢 WKB</h3>
-                            <span class="location-badge wkb">Winaros Kawula Bahari</span>
+                            <h3>WKB</h3>
+                            <span class="location-badge wkb">Winaros K.B.</span>
                         </div>
                         <div class="location-stats">
-                            <div class="location-stat">
-                                <div class="stat-icon-large">📦</div>
-                                <div class="stat-info">
-                                    <div class="stat-value" id="wkbSaldo">-</div>
-                                    <div class="stat-unit">Cartons</div>
-                                </div>
-                            </div>
-                            <div class="location-stat">
-                                <div class="stat-icon-large">⚖️</div>
-                                <div class="stat-info">
-                                    <div class="stat-value" id="wkbKg">-</div>
-                                    <div class="stat-unit">Kilograms</div>
-                                </div>
-                            </div>
+                            <div class="location-stat"><div class="stat-icon-large">📦</div><div class="stat-info"><div class="stat-value" id="wkbSaldo">-</div><div class="stat-unit">Cartons</div></div></div>
+                            <div class="location-stat"><div class="stat-icon-large">⚖️</div><div class="stat-info"><div class="stat-value" id="wkbKg">-</div><div class="stat-unit">Kilograms</div></div></div>
                         </div>
                     </div>
 
-                    <div class="location-card gim-card">
+                    <div class="location-card">
                         <div class="location-header">
-                            <h3>🏭 GIM</h3>
-                            <span class="location-badge gim">Gudang Indonesia Mandiri</span>
+                            <h3>GIM</h3>
+                            <span class="location-badge gim">Gudang I.M.</span>
                         </div>
                         <div class="location-stats">
-                            <div class="location-stat">
-                                <div class="stat-icon-large">📦</div>
-                                <div class="stat-info">
-                                    <div class="stat-value" id="gimSaldo">-</div>
-                                    <div class="stat-unit">Cartons</div>
-                                </div>
-                            </div>
-                            <div class="location-stat">
-                                <div class="stat-icon-large">⚖️</div>
-                                <div class="stat-info">
-                                    <div class="stat-value" id="gimKg">-</div>
-                                    <div class="stat-unit">Kilograms</div>
-                                </div>
-                            </div>
+                            <div class="location-stat"><div class="stat-icon-large">📦</div><div class="stat-info"><div class="stat-value" id="gimSaldo">-</div><div class="stat-unit">Cartons</div></div></div>
+                            <div class="location-stat"><div class="stat-icon-large">⚖️</div><div class="stat-info"><div class="stat-value" id="gimKg">-</div><div class="stat-unit">Kilograms</div></div></div>
                         </div>
                     </div>
 
-                    <div class="location-card cont-card">
+                    <div class="location-card">
                         <div class="location-header">
-                            <h3>📦 CONT</h3>
-                            <span class="location-badge cont">Container Storage</span>
+                            <h3>CONT</h3>
+                            <span class="location-badge cont">Container</span>
                         </div>
                         <div class="location-stats">
-                            <div class="location-stat">
-                                <div class="stat-icon-large">📦</div>
-                                <div class="stat-info">
-                                    <div class="stat-value" id="contSaldo">-</div>
-                                    <div class="stat-unit">Cartons</div>
-                                </div>
-                            </div>
-                            <div class="location-stat">
-                                <div class="stat-icon-large">⚖️</div>
-                                <div class="stat-info">
-                                    <div class="stat-value" id="contKg">-</div>
-                                    <div class="stat-unit">Kilograms</div>
-                                </div>
-                            </div>
+                            <div class="location-stat"><div class="stat-icon-large">📦</div><div class="stat-info"><div class="stat-value" id="contSaldo">-</div><div class="stat-unit">Cartons</div></div></div>
+                            <div class="location-stat"><div class="stat-icon-large">⚖️</div><div class="stat-info"><div class="stat-value" id="contKg">-</div><div class="stat-unit">Kilograms</div></div></div>
                         </div>
                     </div>
 
-                    <div class="location-card total-card">
+                    <div class="location-card">
                         <div class="location-header">
-                            <h3>🌟 TOTAL</h3>
-                            <span class="location-badge total">All Locations Combined</span>
+                            <h3>TOTAL</h3>
+                            <span class="location-badge total">All Locations</span>
                         </div>
                         <div class="location-stats">
-                            <div class="location-stat">
-                                <div class="stat-icon-large">📦</div>
-                                <div class="stat-info">
-                                    <div class="stat-value" id="totalAllSaldo">-</div>
-                                    <div class="stat-unit">Cartons</div>
-                                </div>
-                            </div>
-                            <div class="location-stat">
-                                <div class="stat-icon-large">⚖️</div>
-                                <div class="stat-info">
-                                    <div class="stat-value" id="totalAllKg">-</div>
-                                    <div class="stat-unit">Kilograms</div>
-                                </div>
-                            </div>
+                            <div class="location-stat"><div class="stat-icon-large">📦</div><div class="stat-info"><div class="stat-value" id="totalAllSaldo">-</div><div class="stat-unit">Cartons</div></div></div>
+                            <div class="location-stat"><div class="stat-icon-large">⚖️</div><div class="stat-info"><div class="stat-value" id="totalAllKg">-</div><div class="stat-unit">Kilograms</div></div></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-
     </div>
 
     <script>
-        const API_KEY = "AIzaSyBhiKDVDH4fle5_EqAIaA05YjpxVMEBYZM";
+        const API_KEY = "AIzaSyBhiKDVDH4fle5_EqAIaA05YjpxVMEBYZM"; // WARNING: This key is public. For production, use a backend proxy.
         const SHEET_ID = "1dgXDpt3MTdpHZyhhY7VdKC3tT_EQJaqoBBb0VFXwJco";
         const SHEET_NAME = "DETAIL";
         
         let allData = [];
         let filteredData = [];
-        let rawSheetData = [];
         let currentPage = 1;
         let itemsPerPage = 20;
-        let currentView = 'table';
+        let debounceTimer;
         
-        // Initialize animated background
-        function initAnimatedBackground() {
-            const bg = document.getElementById('animatedBg');
-            for (let i = 0; i < 50; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'bg-particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 20 + 's';
-                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
-                bg.appendChild(particle);
-            }
-        }
-        
-        // Get last modified date
         async function getLastModified() {
             try {
-                const driveUrl = `https://www.googleapis.com/drive/v3/files/${SHEET_ID}?fields=modifiedTime,name&key=${API_KEY}`;
+                const driveUrl = `https://www.googleapis.com/drive/v3/files/${SHEET_ID}?fields=modifiedTime&key=${API_KEY}`;
                 const response = await fetch(driveUrl);
+                if (!response.ok) throw new Error('Failed to fetch file metadata');
                 
-                if (response.ok) {
-                    const fileInfo = await response.json();
-                    const modifiedDate = new Date(fileInfo.modifiedTime);
-                    const formattedDate = modifiedDate.toLocaleString('id-ID', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        timeZone: 'Asia/Jakarta'
-                    });
-                    
-                    document.getElementById('lastModified').innerHTML = 
-                        `📅 Updated: ${formattedDate} WIB`;
-                } else {
-                    document.getElementById('lastModified').innerHTML = 
-                        `📅 Update info unavailable`;
-                }
+                const fileInfo = await response.json();
+                const modifiedDate = new Date(fileInfo.modifiedTime);
+                const formattedDate = modifiedDate.toLocaleString('id-ID', {
+                    year: 'numeric', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta'
+                });
+                document.getElementById('lastModified').textContent = `Updated: ${formattedDate} WIB`;
             } catch (error) {
                 console.error('Error getting last modified:', error);
-                document.getElementById('lastModified').innerHTML = 
-                    `📅 Update info unavailable`;
+                document.getElementById('lastModified').textContent = `Update info unavailable`;
             }
         }
 
-        // Load data from Google Sheets
         async function loadData() {
+            showLoading(true);
+            hideError();
+            
             try {
-                showLoading(true);
-                hideError();
+                const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
+                const [_, response] = await Promise.all([getLastModified(), fetch(sheetUrl)]);
                 
-                const [_, sheetResponse] = await Promise.all([
-                    getLastModified(),
-                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`)
-                ]);
-                
-                if (!sheetResponse.ok) {
-                    const errorText = await sheetResponse.text();
-                    throw new Error(`HTTP error! status: ${sheetResponse.status} - ${errorText}`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`HTTP ${response.status}: ${errorData.error.message}`);
                 }
                 
-                const data = await sheetResponse.json();
-                
-                if (!data.values || data.values.length === 0) {
-                    throw new Error('No data found in the spreadsheet.');
+                const data = await response.json();
+                if (!data.values || data.values.length < 2) {
+                    throw new Error('No data found in the spreadsheet or sheet is empty.');
                 }
                 
-                rawSheetData = data.values;
                 processData(data.values);
                 populateFilters();
+                initInterconnectedFilters();
                 applyFilters();
-                updateStats();
                 updateDashboard();
-                showLoading(false);
                 
             } catch (error) {
                 console.error('Error loading data:', error);
-                let errorMessage = 'Failed to load data: ' + error.message;
-                if (error.message.includes('403')) {
-                    errorMessage += '. Please ensure the Google Sheet is publicly accessible.';
-                } else if (error.message.includes('404')) {
-                    errorMessage += '. Sheet ID or sheet name "DETAIL" not found.';
-                }
-                showError(errorMessage);
+                showError(`Failed to load data. Please check if the Google Sheet is public and the configuration is correct. (Error: ${error.message})`);
+            } finally {
                 showLoading(false);
             }
         }
         
-        // Process raw data from sheets
         function processData(rawData) {
-            const headers = rawData[0];
+            const headers = rawData[0].map(h => (h || '').trim().toUpperCase());
             const rows = rawData.slice(1);
             
-            const colIndices = {
-                produkId: headers.findIndex(h => h && h.toString().trim() === 'PRODUK ID'),
-                packing: headers.findIndex(h => h && h.toString().trim() === 'PACKING'),
-                brand: headers.findIndex(h => h && h.toString().trim() === 'BRAND'),
-                po: headers.findIndex(h => h && h.toString().trim() === 'PO'),
-                saldo: headers.findIndex(h => h && h.toString().trim() === 'SALDO'),
-                kg: headers.findIndex(h => h && h.toString().trim() === 'KG'),
-                raw: headers.findIndex(h => h && h.toString().trim() === 'RAW')
+            const col = {
+                produkId: headers.indexOf('PRODUK ID'),
+                packing: headers.indexOf('PACKING'),
+                brand: headers.indexOf('BRAND'),
+                po: headers.indexOf('PO'),
+                saldo: headers.indexOf('SALDO'),
+                kg: headers.indexOf('KG'),
+                raw: headers.indexOf('RAW')
             };
+
+            if (col.produkId === -1 || col.saldo === -1) {
+                throw new Error("Essential columns 'PRODUK ID' or 'SALDO' not found in the sheet.");
+            }
             
-            const groupedData = {};
+            const groupedData = new Map();
             
-            rows.forEach((row, index) => {
-                if (!row || row.length === 0) return;
+            rows.forEach(row => {
+                if (!row || row.length === 0 || !row[col.produkId]) return;
                 
-                const rawValue = colIndices.raw >= 0 ? (row[colIndices.raw] || '').toString().trim().toUpperCase() : '';
+                const rawValue = (row[col.raw] || '').toUpperCase();
                 let location = 'WKB';
+                if (rawValue.includes('GIM')) location = 'GIM';
+                else if (rawValue.includes('CONT')) location = 'CONT';
                 
-                if (rawValue.includes('GIM')) {
-                    location = 'GIM';
-                } else if (rawValue.includes('CONT')) {
-                    location = 'CONT';
-                }
-                
-                const produkId = colIndices.produkId >= 0 ? (row[colIndices.produkId] || '').toString().trim() : '';
-                const packing = colIndices.packing >= 0 ? (row[colIndices.packing] || '').toString().trim() : '';
-                const brand = colIndices.brand >= 0 ? (row[colIndices.brand] || '').toString().trim() : '';
-                const po = colIndices.po >= 0 ? (row[colIndices.po] || '').toString().trim() : '';
-                const saldoValue = colIndices.saldo >= 0 ? row[colIndices.saldo] : null;
-                const saldo = saldoValue ? parseFloat(saldoValue.toString().replace(/[^\d.-]/g, '')) || 0 : 0;
-                const kgValue = colIndices.kg >= 0 ? row[colIndices.kg] : null;
-                let kg = 0;
-                if (kgValue !== null && kgValue !== undefined && kgValue !== '') {
-                    const cleanKg = kgValue.toString().trim()
-                        .replace(/[^\d.,-]/g, '')
-                        .replace(/,/g, '.');
-                    kg = parseFloat(cleanKg) || 0;
-                }
-                
-                if (!produkId) return;
+                const produkId = (row[col.produkId] || '').trim();
+                const packing = (row[col.packing] || '').trim();
+                const brand = (row[col.brand] || '').trim();
+                const po = (row[col.po] || '').trim();
+
+                // Robust number parsing
+                const saldo = parseFloat(String(row[col.saldo] || '0').replace(/[^0-9.-]+/g,"")) || 0;
+                const kg = parseFloat(String(row[col.kg] || '0').replace(/,/g, '.').replace(/[^0-9.-]+/g,"")) || 0;
                 
                 const uniqueKey = `${produkId}|${packing}|${brand}|${po}|${location}`;
                 
-                if (groupedData[uniqueKey]) {
-                    groupedData[uniqueKey].saldo += saldo;
-                    groupedData[uniqueKey].kg += kg;
+                if (groupedData.has(uniqueKey)) {
+                    const existing = groupedData.get(uniqueKey);
+                    existing.saldo += saldo;
+                    existing.kg += kg;
                 } else {
-                    groupedData[uniqueKey] = {
-                        produkId: produkId,
-                        packing: packing,
-                        brand: brand,
-                        po: po,
-                        saldo: saldo,
-                        kg: kg,
-                        location: location,
-                        rawData: row,
-                        rowIndex: index + 1
-                    };
+                    groupedData.set(uniqueKey, { produkId, packing, brand, po, saldo, kg, location });
                 }
             });
             
-            allData = Object.values(groupedData);
+            allData = Array.from(groupedData.values());
         }
         
-        // Global search functionality
-        function setupGlobalSearch() {
-            const globalSearch = document.getElementById('globalSearch');
-            globalSearch.addEventListener('input', (e) => {
-                const searchTerm = e.target.value.toLowerCase().trim();
-                
-                if (searchTerm === '') {
-                    // Clear all specific filters when global search is empty
-                    document.getElementById('searchProduk').value = '';
-                    document.getElementById('searchPacking').value = '';
-                    document.getElementById('searchBrand').value = '';
-                    document.getElementById('searchPO').value = '';
-                } else {
-                    // Find matches across all fields
-                    const matches = allData.filter(item => {
-                        return (item.produkId || '').toLowerCase().includes(searchTerm) ||
-                               (item.packing || '').toLowerCase().includes(searchTerm) ||
-                               (item.brand || '').toLowerCase().includes(searchTerm) ||
-                               (item.po || '').toLowerCase().includes(searchTerm);
-                    });
-                    
-                    // Auto-populate specific filters if there's a clear match
-                    if (matches.length > 0) {
-                        const firstMatch = matches[0];
-                        if ((firstMatch.produkId || '').toLowerCase().includes(searchTerm)) {
-                            document.getElementById('searchProduk').value = firstMatch.produkId;
-                        }
-                        if ((firstMatch.packing || '').toLowerCase().includes(searchTerm)) {
-                            document.getElementById('searchPacking').value = firstMatch.packing;
-                        }
-                        if ((firstMatch.brand || '').toLowerCase().includes(searchTerm)) {
-                            document.getElementById('searchBrand').value = firstMatch.brand;
-                        }
-                        if ((firstMatch.po || '').toLowerCase().includes(searchTerm)) {
-                            document.getElementById('searchPO').value = firstMatch.po;
-                        }
-                    }
-                }
-                
-                // Apply filters automatically
-                applyFilters();
+        function setupEventListeners() {
+            document.getElementById('globalSearch').addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(applyFilters, 300);
             });
         }
         
-        // Populate filter dropdowns
         function populateFilters() {
-            const produkSet = new Set();
-            const packingSet = new Set();
-            const brandSet = new Set();
-            const poSet = new Set();
-            
-            allData.forEach(item => {
-                if (item.produkId) produkSet.add(item.produkId);
-                if (item.packing) packingSet.add(item.packing);
-                if (item.brand) brandSet.add(item.brand);
-                if (item.po) poSet.add(item.po);
-            });
-            
-            populateDatalist('produkList', Array.from(produkSet).sort());
-            populateDatalist('packingList', Array.from(packingSet).sort());
-            populateDatalist('brandList', Array.from(brandSet).sort());
-            populateDatalist('poList', Array.from(poSet).sort());
+            const createOptions = (key) => [...new Set(allData.map(item => item[key]).filter(Boolean))].sort();
+            populateDatalist('produkList', createOptions('produkId'));
+            populateDatalist('packingList', createOptions('packing'));
+            populateDatalist('brandList', createOptions('brand'));
+            populateDatalist('poList', createOptions('po'));
         }
         
-        function populateDatalist(datalistId, options) {
-            const datalist = document.getElementById(datalistId);
-            datalist.innerHTML = '';
-            
-            options.forEach(option => {
-                const optionElement = document.createElement('option');
-                optionElement.value = option;
-                datalist.appendChild(optionElement);
-            });
-        }
         
-        // Apply filters
+        // ========================
+// 🔄 INTERCONNECTED FILTER
+// ========================
+function initInterconnectedFilters() {
+    // Event listener tiap filter input
+    ['searchProduk', 'searchPacking', 'searchBrand', 'searchPO', 'filterLocation']
+        .forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', updateConnectedFilters);
+        });
+}
+
+function updateConnectedFilters() {
+    const selected = {
+        produkId: document.getElementById('searchProduk').value.trim().toLowerCase(),
+        packing: document.getElementById('searchPacking').value.trim().toLowerCase(),
+        brand: document.getElementById('searchBrand').value.trim().toLowerCase(),
+        po: document.getElementById('searchPO').value.trim().toLowerCase(),
+        location: document.getElementById('filterLocation').value.trim().toLowerCase()
+    };
+
+    // Saring data sesuai filter aktif
+    let filtered = allData.filter(item =>
+        (!selected.produkId || item.produkId.toLowerCase().includes(selected.produkId)) &&
+        (!selected.packing || item.packing.toLowerCase().includes(selected.packing)) &&
+        (!selected.brand || item.brand.toLowerCase().includes(selected.brand)) &&
+        (!selected.po || item.po.toLowerCase().includes(selected.po)) &&
+        (!selected.location || item.location.toLowerCase() === selected.location)
+    );
+
+    // Isi ulang daftar opsi berdasarkan hasil filter
+    populateConnectedOptions(filtered);
+}
+
+// Mengisi ulang opsi filter berdasarkan data hasil penyaringan
+function populateConnectedOptions(filtered) {
+    const createOptions = (key) => [...new Set(filtered.map(item => item[key]).filter(Boolean))].sort();
+    populateDatalist('produkList', createOptions('produkId'));
+    populateDatalist('packingList', createOptions('packing'));
+    populateDatalist('brandList', createOptions('brand'));
+    populateDatalist('poList', createOptions('po'));
+}
+        
+        
+        
+        
+        
+        const populateDatalist = (id, options) => {
+            const list = document.getElementById(id);
+            list.innerHTML = options.map(opt => `<option value="${opt}"></option>`).join('');
+        };
+        
         function applyFilters() {
-            const searchProduk = document.getElementById('searchProduk').value.trim();
-            const searchPacking = document.getElementById('searchPacking').value.trim();
-            const searchBrand = document.getElementById('searchBrand').value.trim();
-            const searchPO = document.getElementById('searchPO').value.trim();
-            const filterLocation = document.getElementById('filterLocation').value.trim();
-            const globalSearch = document.getElementById('globalSearch').value.toLowerCase().trim();
+            const getVal = id => document.getElementById(id).value.trim().toLowerCase();
+            const filters = {
+                produkId: getVal('searchProduk'),
+                packing: getVal('searchPacking'),
+                brand: getVal('searchBrand'),
+                po: getVal('searchPO'),
+                location: getVal('filterLocation'),
+                global: getVal('globalSearch')
+            };
             
             filteredData = allData.filter(item => {
-                const produkId = (item.produkId || '').trim();
-                const packing = (item.packing || '').trim();
-                const brand = (item.brand || '').trim();
-                const po = (item.po || '').trim();
-                const location = (item.location || '').trim();
-                
-                // Global search filter
-                let globalMatch = true;
-                if (globalSearch) {
-                    globalMatch = produkId.toLowerCase().includes(globalSearch) ||
-                                 packing.toLowerCase().includes(globalSearch) ||
-                                 brand.toLowerCase().includes(globalSearch) ||
-                                 po.toLowerCase().includes(globalSearch);
-                }
-                
-                // Specific filters
-                const produkMatch = searchProduk === '' || produkId === searchProduk;
-                const packingMatch = searchPacking === '' || packing === searchPacking;
-                const brandMatch = searchBrand === '' || brand === searchBrand;
-                const poMatch = searchPO === '' || po === searchPO;
-                const locationMatch = filterLocation === '' || location === filterLocation;
-                
-                return globalMatch && produkMatch && packingMatch && brandMatch && poMatch && locationMatch;
+                const globalMatch = filters.global === '' || Object.values(item).some(val => String(val).toLowerCase().includes(filters.global));
+                return globalMatch &&
+                    (filters.produkId === '' || (item.produkId || '').toLowerCase() === filters.produkId) &&
+                    (filters.packing === '' || (item.packing || '').toLowerCase() === filters.packing) &&
+                    (filters.brand === '' || (item.brand || '').toLowerCase() === filters.brand) &&
+                    (filters.po === '' || (item.po || '').toLowerCase() === filters.po) &&
+                    (filters.location === '' || (item.location || '').toLowerCase() === filters.location);
             });
             
             currentPage = 1;
@@ -1535,466 +971,162 @@
             updateStats();
         }
         
-        // Clear all filters
         function clearFilters() {
-            document.getElementById('globalSearch').value = '';
-            document.getElementById('searchProduk').value = '';
-            document.getElementById('searchPacking').value = '';
-            document.getElementById('searchBrand').value = '';
-            document.getElementById('searchPO').value = '';
-            document.getElementById('filterLocation').value = '';
-            
-            filteredData = [...allData];
-            currentPage = 1;
-            displayData();
-            updateStats();
-            populateFilters();
+            ['globalSearch', 'searchProduk', 'searchPacking', 'searchBrand', 'searchPO', 'filterLocation'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            applyFilters();
         }
         
-        // Display data with pagination
         function displayData() {
             const dataDisplay = document.getElementById('dataDisplay');
-            const noDataMessage = document.getElementById('noDataMessage');
-            
             if (filteredData.length === 0) {
                 dataDisplay.style.display = 'none';
-                noDataMessage.style.display = 'block';
                 return;
             }
-            
             dataDisplay.style.display = 'block';
-            noDataMessage.style.display = 'none';
             
             const totalPages = Math.ceil(filteredData.length / itemsPerPage);
             const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
-            const currentPageData = filteredData.slice(startIndex, endIndex);
+            const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
             
-            updatePaginationInfo(startIndex + 1, endIndex, filteredData.length);
-            
-            if (currentView === 'table') {
-                displayTableView(currentPageData);
-            } else {
-                displayCardView(currentPageData);
-            }
-            
-            updatePaginationControls(totalPages);
-        }
-        
-        // Display table view
-        function displayTableView(data) {
-            const tableContainer = document.getElementById('tableContainer');
-            const cardsContainer = document.getElementById('cardsContainer');
             const tableBody = document.getElementById('tableBody');
-            
-            tableContainer.style.display = 'block';
-            cardsContainer.style.display = 'none';
-            
-            tableBody.innerHTML = '';
-            
-            data.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
+            tableBody.innerHTML = paginatedData.map(item => `
+                <tr>
                     <td>${item.produkId}</td>
                     <td>${item.packing}</td>
                     <td>${item.brand}</td>
                     <td>${item.po}</td>
-                    <td>${item.saldo.toLocaleString()}</td>
-                    <td>${item.kg.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 2})}</td>
-                    <td><span style="padding: 4px 12px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${item.location}</span></td>
-                `;
-                tableBody.appendChild(row);
-            });
+                    <td>${item.saldo.toLocaleString('id-ID')}</td>
+                    <td>${item.kg.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</td>
+                    <td><span class="location-badge ${item.location.toLowerCase()}">${item.location}</span></td>
+                </tr>
+            `).join('');
+            
+            updatePaginationControls(totalPages);
         }
         
-        // Display card view
-        function displayCardView(data) {
-            const tableContainer = document.getElementById('tableContainer');
-            const cardsContainer = document.getElementById('cardsContainer');
-            
-            tableContainer.style.display = 'none';
-            cardsContainer.style.display = 'grid';
-            
-            cardsContainer.innerHTML = '';
-            
-            data.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'product-card';
-                card.style.cssText = `
-                    background: rgba(30, 41, 59, 0.6);
-                    backdrop-filter: blur(20px);
-                    border-radius: 16px;
-                    padding: 24px;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-                    transition: all 0.3s ease;
-                    position: relative;
-                    overflow: hidden;
-                `;
-                
-                card.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
-                        <h3 style="color: #e2e8f0; margin: 0; font-size: 1.1rem; font-weight: 700;">${item.produkId}</h3>
-                        <span style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">${item.location}</span>
-                    </div>
-                    <div style="display: grid; gap: 12px;">
-                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-                            <span style="color: rgba(203, 213, 225, 0.8); font-weight: 600;">📦 Packing</span>
-                            <span style="color: #e2e8f0; font-weight: 600;">${item.packing}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-                            <span style="color: rgba(203, 213, 225, 0.8); font-weight: 600;">🏢 Brand</span>
-                            <span style="color: #e2e8f0; font-weight: 600;">${item.brand}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-                            <span style="color: rgba(203, 213, 225, 0.8); font-weight: 600;">📋 PO</span>
-                            <span style="color: #e2e8f0; font-weight: 600;">${item.po}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-                            <span style="color: rgba(203, 213, 225, 0.8); font-weight: 600;">📊 Saldo</span>
-                            <span style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 6px 12px; border-radius: 8px; font-weight: 700;">${item.saldo.toLocaleString()} Carton</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 8px 0;">
-                            <span style="color: rgba(203, 213, 225, 0.8); font-weight: 600;">⚖️ Weight</span>
-                            <span style="color: #e2e8f0; font-weight: 600;">${item.kg.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 2})} KG</span>
-                        </div>
-                    </div>
-                `;
-                
-                card.addEventListener('mouseenter', () => {
-                    card.style.transform = 'translateY(-4px)';
-                    card.style.boxShadow = '0 16px 48px rgba(0,0,0,0.3)';
-                });
-                
-                card.addEventListener('mouseleave', () => {
-                    card.style.transform = 'translateY(0)';
-                    card.style.boxShadow = '0 8px 32px rgba(0,0,0,0.2)';
-                });
-                
-                cardsContainer.appendChild(card);
-            });
-        }
-        
-        // Switch between table and card view
-        function switchView(view) {
-            currentView = view;
-            currentPage = 1;
-            
-            const tableBtn = document.getElementById('tableViewBtn');
-            const cardBtn = document.getElementById('cardViewBtn');
-            
-            if (view === 'table') {
-                tableBtn.classList.add('active');
-                cardBtn.classList.remove('active');
-            } else {
-                cardBtn.classList.add('active');
-                tableBtn.classList.remove('active');
-            }
-            
-            displayData();
-        }
-        
-        // Update pagination info
-        function updatePaginationInfo(start, end, total) {
-            const paginationInfo = document.getElementById('paginationInfo');
-            paginationInfo.textContent = `Showing ${start}-${end} of ${total.toLocaleString()} products`;
-        }
-        
-        // Update pagination controls
         function updatePaginationControls(totalPages) {
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            const pageNumbers = document.getElementById('pageNumbers');
-            
-            prevBtn.disabled = currentPage === 1;
-            nextBtn.disabled = currentPage === totalPages;
-            
-            pageNumbers.innerHTML = '';
-            
-            const maxVisiblePages = 5;
-            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-            
-            if (endPage - startPage < maxVisiblePages - 1) {
-                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            const container = document.getElementById('paginationContainer');
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
             }
             
-            if (startPage > 1) {
-                addPageButton(1);
-                if (startPage > 2) {
-                    const ellipsis = document.createElement('span');
-                    ellipsis.textContent = '...';
-                    ellipsis.style.padding = '12px 8px';
-                    ellipsis.style.color = 'rgba(203, 213, 225, 0.5)';
-                    pageNumbers.appendChild(ellipsis);
+            let html = `<button id="prevBtn" onclick="changePage(-1)" ${currentPage === 1 ? 'disabled' : ''}>&laquo; Prev</button>`;
+            
+            // Simplified pagination logic
+            const pagesToShow = new Set([1, totalPages, currentPage, currentPage - 1, currentPage + 1]);
+            let lastPage = 0;
+            for (let i = 1; i <= totalPages; i++) {
+                if (pagesToShow.has(i)) {
+                    if (i - lastPage > 1) html += `<span>...</span>`;
+                    html += `<button class="${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+                    lastPage = i;
                 }
             }
             
-            for (let i = startPage; i <= endPage; i++) {
-                addPageButton(i);
-            }
-            
-            if (endPage < totalPages) {
-                if (endPage < totalPages - 1) {
-                    const ellipsis = document.createElement('span');
-                    ellipsis.textContent = '...';
-                    ellipsis.style.padding = '12px 8px';
-                    ellipsis.style.color = 'rgba(203, 213, 225, 0.5)';
-                    pageNumbers.appendChild(ellipsis);
-                }
-                addPageButton(totalPages);
-            }
+            html += `<button id="nextBtn" onclick="changePage(1)" ${currentPage === totalPages ? 'disabled' : ''}>Next &raquo;</button>`;
+            container.innerHTML = html;
         }
         
-        // Add page button
-        function addPageButton(pageNum) {
-            const pageNumbers = document.getElementById('pageNumbers');
-            const button = document.createElement('button');
-            button.textContent = pageNum;
-            button.onclick = () => goToPage(pageNum);
-            
-            if (pageNum === currentPage) {
-                button.classList.add('active');
-            }
-            
-            pageNumbers.appendChild(button);
-        }
-        
-        // Change page
-        function changePage(direction) {
+        const changePage = (dir) => goToPage(currentPage + dir);
+        const goToPage = (num) => {
             const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-            const newPage = currentPage + direction;
-            
-            if (newPage >= 1 && newPage <= totalPages) {
-                currentPage = newPage;
+            if (num >= 1 && num <= totalPages) {
+                currentPage = num;
                 displayData();
             }
-        }
+        };
         
-        // Go to specific page
-        function goToPage(pageNum) {
-            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-            
-            if (pageNum >= 1 && pageNum <= totalPages) {
-                currentPage = pageNum;
-                displayData();
-            }
-        }
-        
-        // Change items per page
-        function changeItemsPerPage() {
-            const select = document.getElementById('itemsPerPage');
-            itemsPerPage = parseInt(select.value);
-            currentPage = 1;
-            displayData();
-        }
-        
-        // Update statistics with advanced metrics
         function updateStats() {
-            const totalProducts = filteredData.length;
-            const totalSaldo = filteredData.reduce((sum, item) => sum + (item.saldo || 0), 0);
-            const totalKg = filteredData.reduce((sum, item) => sum + (item.kg || 0), 0);
-            const uniqueBrands = new Set(filteredData.map(item => item.brand)).size;
-            const uniqueLocations = new Set(filteredData.map(item => item.location)).size;
-            
-            document.getElementById('totalProducts').textContent = totalProducts.toLocaleString();
-            document.getElementById('totalSaldo').textContent = totalSaldo.toLocaleString();
-            document.getElementById('totalKg').textContent = totalKg.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 2});
-            document.getElementById('uniqueBrands').textContent = uniqueBrands;
-            document.getElementById('uniqueLocations').textContent = uniqueLocations;
+            const formatNumber = (num, digits = 0) => num.toLocaleString('id-ID', { minimumFractionDigits: digits, maximumFractionDigits: 2 });
+            document.getElementById('totalProducts').textContent = formatNumber(filteredData.length);
+            document.getElementById('totalSaldo').textContent = formatNumber(filteredData.reduce((sum, item) => sum + (item.saldo || 0), 0));
+            document.getElementById('totalKg').textContent = formatNumber(filteredData.reduce((sum, item) => sum + (item.kg || 0), 0), 2);
+            document.getElementById('uniqueBrands').textContent = new Set(filteredData.map(item => item.brand)).size;
+            document.getElementById('uniqueLocations').textContent = new Set(filteredData.map(item => item.location)).size;
         }
         
-
-        
-        // Update dashboard
         function updateDashboard() {
             if (allData.length === 0) return;
             
-            const locationStats = {
-                WKB: { saldo: 0, kg: 0 },
-                GIM: { saldo: 0, kg: 0 },
-                CONT: { saldo: 0, kg: 0 }
-            };
+            const stats = { WKB: { saldo: 0, kg: 0 }, GIM: { saldo: 0, kg: 0 }, CONT: { saldo: 0, kg: 0 } };
             
             allData.forEach(item => {
-                const location = item.location || 'WKB';
-                if (locationStats[location]) {
-                    locationStats[location].saldo += item.saldo || 0;
-                    locationStats[location].kg += item.kg || 0;
+                if (stats[item.location]) {
+                    stats[item.location].saldo += item.saldo || 0;
+                    stats[item.location].kg += item.kg || 0;
                 }
             });
             
-            const totalSaldo = Object.values(locationStats).reduce((sum, loc) => sum + loc.saldo, 0);
-            const totalKg = Object.values(locationStats).reduce((sum, loc) => sum + loc.kg, 0);
-            
-            document.getElementById('wkbSaldo').textContent = locationStats.WKB.saldo.toLocaleString();
-            document.getElementById('wkbKg').textContent = locationStats.WKB.kg.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 2});
-            
-            document.getElementById('gimSaldo').textContent = locationStats.GIM.saldo.toLocaleString();
-            document.getElementById('gimKg').textContent = locationStats.GIM.kg.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 2});
-            
-            document.getElementById('contSaldo').textContent = locationStats.CONT.saldo.toLocaleString();
-            document.getElementById('contKg').textContent = locationStats.CONT.kg.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 2});
-            
-            document.getElementById('totalAllSaldo').textContent = totalSaldo.toLocaleString();
-            document.getElementById('totalAllKg').textContent = totalKg.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 2});
+            const total = { 
+                saldo: stats.WKB.saldo + stats.GIM.saldo + stats.CONT.saldo, 
+                kg: stats.WKB.kg + stats.GIM.kg + stats.CONT.kg
+            };
+
+            const setVal = (id, val, digits = 0) => document.getElementById(id).textContent = val.toLocaleString('id-ID', { minimumFractionDigits: digits, maximumFractionDigits: 2 });
+
+            setVal('wkbSaldo', stats.WKB.saldo); setVal('wkbKg', stats.WKB.kg, 2);
+            setVal('gimSaldo', stats.GIM.saldo); setVal('gimKg', stats.GIM.kg, 2);
+            setVal('contSaldo', stats.CONT.saldo); setVal('contKg', stats.CONT.kg, 2);
+            setVal('totalAllSaldo', total.saldo); setVal('totalAllKg', total.kg, 2);
         }
         
-
-        
-        // Export functions
         function exportToExcel() {
-            if (filteredData.length === 0) {
-                alert('No data to export');
-                return;
-            }
-            
-            try {
-                const exportData = [];
-                exportData.push(['Product ID', 'Packing', 'Brand', 'PO', 'Saldo', 'KG', 'Location']);
-                
-                filteredData.forEach(item => {
-                    exportData.push([
-                        item.produkId || '',
-                        item.packing || '',
-                        item.brand || '',
-                        item.po || '',
-                        item.saldo || 0,
-                        item.kg || 0,
-                        item.location || ''
-                    ]);
-                });
-                
-                const ws = XLSX.utils.aoa_to_sheet(exportData);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Inventory");
-                
-                const fileName = `Inventory_Professional_${new Date().toISOString().split('T')[0]}.xlsx`;
-                XLSX.writeFile(wb, fileName);
-            } catch (error) {
-                console.error('Export error:', error);
-                alert('Failed to export data to Excel');
-            }
+            if (filteredData.length === 0) return alert('No data to export');
+            const exportData = filteredData.map(item => ({
+                'Product ID': item.produkId, 'Packing': item.packing, 'Brand': item.brand, 'PO': item.po,
+                'Saldo (Carton)': item.saldo, 'Weight (KG)': item.kg, 'Location': item.location
+            }));
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Inventory");
+            XLSX.writeFile(wb, `Inventory_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
         
         function exportToPDF() {
-            if (filteredData.length === 0) {
-                alert('No data to export');
-                return;
-            }
+            if (filteredData.length === 0) return alert('No data to export');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
             
-            try {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('l', 'mm', 'a4');
-                
-                doc.setFontSize(18);
-                doc.text('Professional Inventory Report - CS WKB', 14, 22);
-                
-                doc.setFontSize(12);
-                doc.text(`Generated: ${new Date().toLocaleDateString('id-ID')}`, 14, 32);
-                doc.text(`Total Records: ${filteredData.length.toLocaleString()}`, 14, 40);
-                
-                const headers = ['Product ID', 'Packing', 'Brand', 'PO', 'Saldo', 'KG', 'Location'];
-                const tableData = filteredData.map(item => [
-                    item.produkId || '',
-                    item.packing || '',
-                    item.brand || '',
-                    item.po || '',
-                    item.saldo || 0,
-                    item.kg || 0,
-                    item.location || ''
-                ]);
-                
-                doc.autoTable({
-                    head: [headers],
-                    body: tableData,
-                    startY: 50,
-                    styles: { fontSize: 8 },
-                    headStyles: { 
-                        fillColor: [59, 130, 246],
-                        textColor: [255, 255, 255],
-                        fontStyle: 'bold'
-                    },
-                    margin: { left: 10, right: 10 },
-                    tableWidth: 'auto'
-                });
-                
-                const fileName = `Inventory_Professional_${new Date().toISOString().split('T')[0]}.pdf`;
-                doc.save(fileName);
-            } catch (error) {
-                console.error('PDF export error:', error);
-                alert('Failed to export data to PDF');
-            }
+            doc.setFontSize(18).text('Inventory Report - CS WKB', 14, 22);
+            doc.setFontSize(11).text(`Generated: ${new Date().toLocaleString('id-ID')}`, 14, 30);
+            
+            doc.autoTable({
+                head: [['Product ID', 'Packing', 'Brand', 'PO', 'Saldo', 'KG', 'Location']],
+                body: filteredData.map(item => [
+                    item.produkId, item.packing, item.brand, item.po,
+                    item.saldo.toLocaleString('id-ID'), item.kg.toLocaleString('id-ID', { maximumFractionDigits: 2 }),
+                    item.location
+                ]),
+                startY: 40,
+                theme: 'grid',
+                headStyles: { fillColor: [30, 41, 59] }
+            });
+            
+            doc.save(`Inventory_${new Date().toISOString().split('T')[0]}.pdf`);
         }
         
-
-        
-        // Switch between tabs
         function switchTab(tabName) {
-            const inventoryTab = document.getElementById('inventoryTab');
-            const dashboardTab = document.getElementById('dashboardTab');
-            
-            // Remove active class from all tabs
-            [inventoryTab, dashboardTab].forEach(tab => tab.classList.remove('active'));
-            
-            // Hide all content
-            document.getElementById('inventoryContent').style.display = 'none';
-            document.getElementById('dashboardContent').style.display = 'none';
-            
-            // Show selected tab
-            if (tabName === 'inventory') {
-                inventoryTab.classList.add('active');
-                document.getElementById('inventoryContent').style.display = 'block';
-            } else if (tabName === 'dashboard') {
-                dashboardTab.classList.add('active');
-                document.getElementById('dashboardContent').style.display = 'block';
-                updateDashboard();
-            }
+            document.querySelectorAll('.nav-tab, .tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+            document.getElementById(`${tabName}Content`).classList.add('active');
+            if (tabName === 'dashboard') updateDashboard();
         }
-        
-        // Utility functions
-        function showLoading(show) {
-            document.getElementById('loadingIndicator').style.display = show ? 'block' : 'none';
-        }
-        
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            if (errorDiv) {
-                errorDiv.textContent = message;
-                errorDiv.style.display = 'block';
-                errorDiv.style.background = 'rgba(239, 68, 68, 0.1)';
-                errorDiv.style.color = '#ef4444';
-                errorDiv.style.padding = '16px';
-                errorDiv.style.borderRadius = '12px';
-                errorDiv.style.margin = '20px 0';
-                errorDiv.style.textAlign = 'center';
-                errorDiv.style.border = '1px solid rgba(239, 68, 68, 0.2)';
-            }
-        }
-        
-        function hideError() {
-            const errorDiv = document.getElementById('errorMessage');
-            if (errorDiv) {
-                errorDiv.style.display = 'none';
-            }
-        }
-        
 
+        const showLoading = (show) => document.getElementById('loadingIndicator').style.display = show ? 'block' : 'none';
+        const showError = (message) => {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+        };
+        const hideError = () => document.getElementById('errorMessage').style.display = 'none';
         
-        // Initialize application
         window.addEventListener('load', () => {
-            initAnimatedBackground();
             loadData();
-            setupGlobalSearch();
-            
-            // Add fade-in animation to elements
-            setTimeout(() => {
-                document.querySelectorAll('.slide-up').forEach(el => {
-                    el.style.opacity = '1';
-                    el.style.transform = 'translateY(0)';
-                });
-            }, 200);
+            setupEventListeners();
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'987d715e078b6cf1',t:'MTc1OTMzNzI1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
